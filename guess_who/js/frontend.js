@@ -28,47 +28,65 @@ connection.onopen = function (session, details) {
 };
 
 function main (session) {
-   // subscribe to future vote event
-   session.subscribe("io.crossbar.demo.vote.onvote",
-      function(args) {
-         var event = args[0];
-         document.getElementById("votes" + event.subject).value =
-            event.votes;
-      });
 
-   // get the current vote count
-   session.call("io.crossbar.demo.vote.get").then(
-      function(res){
-         for(var i = 0; i < res.length; i++) {
-            document.getElementById("votes" + res[i].subject).value =
-               res[i].votes;
-         }
-   }, session.log);
-
-   // wire up vote buttons
-   var voteButtons = document.getElementById("voteContainer").
-                              getElementsByTagName("button");
-   for (var i = 0; i < voteButtons.length; i++) {
-      voteButtons[i].onclick = function(evt) {
-         session.call("io.crossbar.demo.vote.vote",
-            [evt.target.id]).then(session.log, session.log);
-      };
+   // Wire up the guess button
+   var guessInput = document.getElementById("inputGuess")
+   var guessButton = document.getElementById("submitGuess");
+   guessButton.onclick = function(event){
+      session.call("com.google.guesswho.submit", 
+         [guessInput.value, "brandon"]).then(session.log, session.log);
    }
 
-   // subscribe to vote reset event
-   session.subscribe("io.crossbar.demo.vote.onreset", function() {
-         var voteCounters = document.getElementById("voteContainer").
-                                     getElementsByTagName("input");
-         for(var i = 0; i < voteCounters.length; i++) {
-            voteCounters[i].value = 0;
-         }
+   // Subscribe to trending guesses
+   // Backend Q: do we push out a full list, or just updates and have the client manage the guesses in memory?
+   //    It'll be faster to send less data
+   session.subscribe("com.google.guesswho.onguess",
+      function(args){
+         var event = args[0];
+         document.getElementById("guessList".getElementsByTagName("span").value = event.list)
       });
 
-   // wire up reset button
-   document.getElementById("resetVotes").onclick = function() {
-      session.call("io.crossbar.demo.vote.reset").
-         then(session.log, session.log);
-   };
+   // // subscribe to future vote event
+   // session.subscribe("io.crossbar.demo.vote.onvote",
+   //    function(args) {
+   //       var event = args[0];
+   //       document.getElementById("votes" + event.subject).value =
+   //          event.votes;
+   //    });
+
+   // // get the current vote count
+   // session.call("io.crossbar.demo.vote.get").then(
+   //    function(res){
+   //       for(var i = 0; i < res.length; i++) {
+   //          document.getElementById("votes" + res[i].subject).value =
+   //             res[i].votes;
+   //       }
+   // }, session.log);
+
+   // // wire up vote buttons
+   // var voteButtons = document.getElementById("voteContainer").
+   //                            getElementsByTagName("button");
+   // for (var i = 0; i < voteButtons.length; i++) {
+   //    voteButtons[i].onclick = function(evt) {
+   //       session.call("io.crossbar.demo.vote.vote",
+   //          [evt.target.id]).then(session.log, session.log);
+   //    };
+   // }
+
+   // // subscribe to vote reset event
+   // session.subscribe("io.crossbar.demo.vote.onreset", function() {
+   //       var voteCounters = document.getElementById("voteContainer").
+   //                                   getElementsByTagName("input");
+   //       for(var i = 0; i < voteCounters.length; i++) {
+   //          voteCounters[i].value = 0;
+   //       }
+   //    });
+
+   // // wire up reset button
+   // document.getElementById("resetVotes").onclick = function() {
+   //    session.call("io.crossbar.demo.vote.reset").
+   //       then(session.log, session.log);
+   // };
 }
 
 

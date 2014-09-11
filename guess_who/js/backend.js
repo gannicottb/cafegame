@@ -25,68 +25,87 @@ var connection = new autobahn.Connection({
    realm: 'realm1'}
 );
 
-var votes = {
-   Banana: 0,
-   Chocolate: 0,
-   Lemon: 0,
-   Crossbar: 0
-};
+// var votes = {
+//    Banana: 0,
+//    Chocolate: 0,
+//    Lemon: 0,
+//    Crossbar: 0
+// };
 
 function main (session) {
 
-   // return set of present votes on request
-   var getVote = function() {
-      var votesArr = [];
-      for (var flavor in votes) {
-         if (votes.hasOwnProperty(flavor)) {
-            votesArr.push({
-               subject: flavor,
-               votes: votes[flavor]
-            })
-         }
-      }
-      console.log("received request for current vote count");
-      return votesArr;
-   };
+   // Ok, so what are we actually doing here?
+   // Version 1: Users are submitting arbitrary text guesses
+   // Version 2: Users are choosing from a list of choices
 
-   // handle vote submission
-   var submitVote = function(args, kwargs, details) {
-      var flavor = args[0];
-      votes[flavor] += 1;
+   // So the backend would keep track of all of the guesses, yeah? And probably the user that submitted them? Hmm
 
-      var res = {
-         subject: flavor,
-         votes: votes[flavor]
-      };
-
-      // publish the vote event
-      session.publish("io.crossbar.demo.vote.onvote", [res]);
-
-      console.log("received vote for " + flavor);
-
-      return "voted for " + flavor;
-   };
-
-   // reset vote count
-   var resetVotes = function() {
-      for (var fl in votes) {
-         if (votes.hasOwnProperty(fl)) {
-            votes[fl] = 0;
-         }
-      }
-      // publish the reset event
-      session.publish("io.crossbar.demo.vote.onreset");
-
-      console.log("received vote reset");
-
-      return "votes reset";
-   };
+   // Handle guess submission
+   //
+   var submitGuess = function(args, kwargs, details){
+      var guess = args[0];
+      var user = args[1];
+      console.log("received guess: "+guess+" from "+user);
+      session.publish("com.google.guesswho.onguess", [guess]);
+   }
 
 
-   // register the procedures
-   session.register('io.crossbar.demo.vote.get', getVote);
-   session.register('io.crossbar.demo.vote.vote', submitVote);
-   session.register('io.crossbar.demo.vote.reset', resetVotes);
+
+   session.register('com.google.guesswho.submit', submitGuess);
+
+   // // return set of present votes on request
+   // var getVote = function() {
+   //    var votesArr = [];
+   //    for (var flavor in votes) {
+   //       if (votes.hasOwnProperty(flavor)) {
+   //          votesArr.push({
+   //             subject: flavor,
+   //             votes: votes[flavor]
+   //          })
+   //       }
+   //    }
+   //    console.log("received request for current vote count");
+   //    return votesArr;
+   // };
+
+   // // handle vote submission
+   // var submitVote = function(args, kwargs, details) {
+   //    var flavor = args[0];
+   //    votes[flavor] += 1;
+
+   //    var res = {
+   //       subject: flavor,
+   //       votes: votes[flavor]
+   //    };
+
+   //    // publish the vote event
+   //    session.publish("io.crossbar.demo.vote.onvote", [res]);
+
+   //    console.log("received vote for " + flavor);
+
+   //    return "voted for " + flavor;
+   // };
+
+   // // reset vote count
+   // var resetVotes = function() {
+   //    for (var fl in votes) {
+   //       if (votes.hasOwnProperty(fl)) {
+   //          votes[fl] = 0;
+   //       }
+   //    }
+   //    // publish the reset event
+   //    session.publish("io.crossbar.demo.vote.onreset");
+
+   //    console.log("received vote reset");
+
+   //    return "votes reset";
+   // };
+
+
+   // // register the procedures
+   // session.register('io.crossbar.demo.vote.get', getVote);
+   // session.register('io.crossbar.demo.vote.vote', submitVote);
+   // session.register('io.crossbar.demo.vote.reset', resetVotes);
 }
 
 connection.onopen = function (session) {

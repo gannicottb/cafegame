@@ -170,7 +170,7 @@ header {
 
 
 }
-#voteContainer > div > div > input
+/*#voteContainer > div > div > input
 {
 
     width: 4em;
@@ -182,7 +182,7 @@ header {
 
     transition: all 0.3s ease;
     text-shadow: 0 0 7px rgba(0, 0, 0, 0.2);
-}
+}*/
 
 
 #voteContainer > div > button
