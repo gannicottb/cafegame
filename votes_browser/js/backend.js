@@ -28,7 +28,8 @@ var connection = new autobahn.Connection({
 var votes = {
    Banana: 0,
    Chocolate: 0,
-   Lemon: 0
+   Lemon: 0,
+   Crossbar: 0
 };
 
 function main (session) {
