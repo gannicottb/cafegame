@@ -46,7 +46,7 @@ function main (session) {
       var guess = args[0];
       var user = args[1];
       console.log("received guess: "+guess+" from "+user);
-      session.publish("com.google.guesswho.onguess", [guess]);
+      session.publish("com.google.guesswho.onguess", [{user: user, guess: guess}]);
    }
 
 
@@ -68,23 +68,23 @@ function main (session) {
    //    return votesArr;
    // };
 
-   // // handle vote submission
-   // var submitVote = function(args, kwargs, details) {
-   //    var flavor = args[0];
-   //    votes[flavor] += 1;
+   // handle vote submission
+   var submitVote = function(args, kwargs, details) {
+      var flavor = args[0];
+      votes[flavor] += 1;
 
-   //    var res = {
-   //       subject: flavor,
-   //       votes: votes[flavor]
-   //    };
+      var res = {
+         subject: flavor,
+         votes: votes[flavor]
+      };
 
-   //    // publish the vote event
-   //    session.publish("io.crossbar.demo.vote.onvote", [res]);
+      // publish the vote event
+      session.publish("io.crossbar.demo.vote.onvote", [res]);
 
-   //    console.log("received vote for " + flavor);
+      console.log("received vote for " + flavor);
 
-   //    return "voted for " + flavor;
-   // };
+      return "voted for " + flavor;
+   };
 
    // // reset vote count
    // var resetVotes = function() {

@@ -30,8 +30,9 @@ connection.onopen = function (session, details) {
 function main (session) {
 
    // Wire up the guess button
-   var guessInput = document.getElementById("inputGuess")
+   var guessInput = document.getElementById("inputGuess");
    var guessButton = document.getElementById("submitGuess");
+   //Declare an event handlers
    guessButton.onclick = function(event){
       session.call("com.google.guesswho.submit", 
          [guessInput.value, "brandon"]).then(session.log, session.log);
@@ -43,7 +44,9 @@ function main (session) {
    session.subscribe("com.google.guesswho.onguess",
       function(args){
          var event = args[0];
-         document.getElementById("guessList".getElementsByTagName("span").value = event.list)
+         console.log(event);
+         $(document)
+         document.getElementById("guessList").getElementsByTagName("span").value = event.user+"from"+event.guess;
       });
 
    // // subscribe to future vote event
