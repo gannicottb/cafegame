@@ -221,6 +221,21 @@ button:hover
    text-align: center;
 }
 
+.mainImage
+{
+  -webkit-filter: blur(20px);
+}
+.mainImage.animate
+{
+
+  -webkit-animation: blur-cycle 8s;  
+}
+
+@-webkit-keyframes blur-cycle{
+  0% {-webkit-filter: blur(20px);}  
+  100% {-webkit-filter: blur(0px);}
+}
+
 
 .button
 {

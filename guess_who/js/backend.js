@@ -69,22 +69,22 @@ function main (session) {
    // };
 
    // handle vote submission
-   var submitVote = function(args, kwargs, details) {
-      var flavor = args[0];
-      votes[flavor] += 1;
+   // var submitVote = function(args, kwargs, details) {
+   //    var flavor = args[0];
+   //    votes[flavor] += 1;
 
-      var res = {
-         subject: flavor,
-         votes: votes[flavor]
-      };
+   //    var res = {
+   //       subject: flavor,
+   //       votes: votes[flavor]
+   //    };
 
-      // publish the vote event
-      session.publish("io.crossbar.demo.vote.onvote", [res]);
+   //    // publish the vote event
+   //    session.publish("io.crossbar.demo.vote.onvote", [res]);
 
-      console.log("received vote for " + flavor);
+   //    console.log("received vote for " + flavor);
 
-      return "voted for " + flavor;
-   };
+   //    return "voted for " + flavor;
+   // };
 
    // // reset vote count
    // var resetVotes = function() {
@@ -106,6 +106,33 @@ function main (session) {
    // session.register('io.crossbar.demo.vote.get', getVote);
    // session.register('io.crossbar.demo.vote.vote', submitVote);
    // session.register('io.crossbar.demo.vote.reset', resetVotes);
+
+   // Game loop
+   //
+   var testImages = {
+      list:[
+      'img/dalai_lama_small.jpg',
+      'img/angela_merkel_small.jpg',
+      'img/michael_jackson_small.jpg'
+      ],
+      index: 0
+   }
+
+   var mainImage = $('.mainImage');
+   mainImage.on('webkitAnimationEnd', function(event){
+      var el = $(this);
+      //Get the next image (obviously swap this for a non-local approach)
+      testImages.index = (testImages.index + 1) % testImages.list.length;
+      
+      //Restart the animation
+      el.removeClass('animate');      
+      setTimeout(function() {
+          el.addClass('animate');
+      },1);
+      //Swap in the next image
+      el.attr('src',testImages.list[testImages.index]);
+   })
+
 }
 
 connection.onopen = function (session) {
