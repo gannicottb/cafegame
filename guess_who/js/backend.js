@@ -109,30 +109,30 @@ function main (session) {
 
    // Game loop
    //
-   var testImages = {
-      list:[
-      'img/dalai_lama_small.jpg',
-      'img/angela_merkel_small.jpg',
-      'img/michael_jackson_small.jpg'
-      ],
-      index: 0
-   }
 
-   var mainImage = $('.mainImage');
-   mainImage.on('webkitAnimationEnd', function(event){
-      var el = $(this);
-      //Get the next image (obviously swap this for a non-local approach)
-      testImages.index = (testImages.index + 1) % testImages.list.length;
+   // var mainImage = $('.mainImage');
+   // mainImage.on('webkitAnimationEnd', function(event){
+   //    var el = $(this);
+   //    //Get the next image (obviously swap this for a non-local approach)
+   //    testImages.index = (testImages.index + 1) % testImages.list.length;
       
-      //Restart the animation
-      el.removeClass('animate');      
-      setTimeout(function() {
-          el.addClass('animate');
-      },1);
-      //Swap in the next image
-      el.attr('src',testImages.list[testImages.index]);
-   })
+   //    //Restart the animation
+   //    el.removeClass('animate');      
+   //    setTimeout(function() {
+   //        el.addClass('animate');
+   //    },1);
+   //    //Swap in the next image
+   //    el.attr('src',testImages.list[testImages.index]);
+   // })
 
+}
+
+function hndlr(response) {
+   if (response.items.length > 1) {
+      var item = response.items[0];
+      // in production code, item.htmlTitle should have the HTML entities escaped.
+      document.getElementById("demo_body_img").src = item.link;
+   }
 }
 
 connection.onopen = function (session) {
@@ -142,5 +142,28 @@ connection.onopen = function (session) {
    main(session);
 
 };
+
+myObject = []; //myObject[numberline] = "textEachLine";
+$.get('http://localhost:8080/guesslist.txt', function(myContentFile) {
+   var lines = myContentFile.split("\n");
+
+   for(var i  in lines){
+      //save in object "myObject": 
+      myObject[i] = lines[i]
+
+      //print in console
+      console.log("line " + i + " :" + lines[i]);
+   }
+   console.log("my objects" + myObject.length);
+
+   setInterval(loadGoogleImage,10000);
+
+   function loadGoogleImage() {
+      var keyword = myObject[Math.floor(Math.random()*myObject.length)];
+      document.getElementById('loadarea').src = 'https://www.googleapis.com/customsearch/v1?key=AIzaSyBZfKB3rDMm7GRdLwa5HpCrn7erJFJcjnE&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image';
+   }
+
+}, 'text');
+
 
 connection.open();
