@@ -1,5 +1,8 @@
 var wsuri = null;
 
+var trendingGuesses = new Array(); //Array to collect trending guesses
+
+
 // include AutobahnJS
 try {
    var autobahn = require('autobahn');
@@ -95,6 +98,43 @@ function main (session) {
       var guess = args[0];
       var user = args[1];
       console.log("received guess: "+guess+" from "+user);
+
+      var guessAlreadyPresent; //Boolean flag to check if guess already exists in the list
+
+      guessAlreadyPresent = false;    
+
+      //If a guess already exists in the list, update its count 
+      if (trendingGuesses.length > 0) {
+         
+         for (var i = 0; i < trendingGuesses.length; i++) {
+
+               if(trendingGuesses[i].name === guess)
+               {
+                  guessAlreadyPresent = true;
+                  trendingGuesses[i].count++; //Increments the value of count            
+                  console.log("Guess was found in the list. Updated count for "+guess+" to "+trendingGuesses[i].count);
+                  break;
+               }
+         }         
+      }  
+
+      //New guesses are pushed into the list with count = 1
+      if (guessAlreadyPresent !== true) 
+      {
+            trendingGuesses.push({name:guess, count:1});
+            console.log("Guess not found. Adding new row. Name = "+guess+", Count = "+1);
+      }
+
+      //Sort the trending guesses in descending order of count of each guess
+      trendingGuesses.sort(function(a,b){
+         return b.count - a.count;
+      });
+
+      for(var i=0; i<trendingGuesses.length; i++)
+      {
+         console.log(trendingGuesses[i]);
+      }
+      
       session.publish("com.google.guesswho.onguess", [{user: user, guess: guess}]);
    }
 
