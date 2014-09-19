@@ -127,8 +127,26 @@ function main (session) {
 
 }
 
+var googleAppKey = {
+   items:[
+   'AIzaSyBZfKB3rDMm7GRdLwa5HpCrn7erJFJcjnE',
+   'AIzaSyCzJGVD7YPPONquk_QIPtkwKvU4s32Ikfw',
+   'AIzaSyBwT7_aSaryzJx_FYdFwsmbVYiIDVbf0EY',
+   'AIzaSyAS3GJlkNH8r2tpAIKnqYh_tui3g1fKZB4'
+   ],
+   currentIndex: 0
+}
+
 var image_result = {};
 function hndlr(response) {
+   if (response.items == undefined) {
+      console.log("error occured");
+      // error handling
+      if (response.error != undefined) {
+         googleAppKey.currentIndex += 1;
+         loadGoogleImage();   // retry
+      }
+   }
    if (response.items.length >= 1) {
       image_result = response;
       var item = response.items[0];
@@ -159,19 +177,24 @@ $.get('http://localhost:8080/guesslist.txt', function(myContentFile) {
    console.log("my objects" + myObject.length);
 
    setInterval(loadGoogleImage,10000);
+   
+}, 'text');
 
-   function loadGoogleImage() {
+function loadGoogleImage() {
       var keyword = myObject[Math.floor(Math.random()*myObject.length)];
       console.log("loading " + keyword);
+      var idx = googleAppKey.currentIndex % googleAppKey.items.length;
+      var appkey = googleAppKey.items[idx];
+      console.log("Using app key: " + idx);
       $.ajax({
-            url: 'https://www.googleapis.com/customsearch/v1?key=AIzaSyBZfKB3rDMm7GRdLwa5HpCrn7erJFJcjnE&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image',
+            url: 'https://www.googleapis.com/customsearch/v1?key='
+                  + appkey +'&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image',
             context: document.body,
             success: function(responseText) {
                 eval(responseText);
             }
         });
-   }
-}, 'text');
+}
 
 function imgError(image){
    console.log("error img: " + image.src);
