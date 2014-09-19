@@ -25,12 +25,61 @@ var connection = new autobahn.Connection({
    realm: 'realm1'}
 );
 
-// var votes = {
-//    Banana: 0,
-//    Chocolate: 0,
-//    Lemon: 0,
-//    Crossbar: 0
-// };
+var googleAppKey = {
+   items:[
+   'AIzaSyBZfKB3rDMm7GRdLwa5HpCrn7erJFJcjnE',
+   'AIzaSyCzJGVD7YPPONquk_QIPtkwKvU4s32Ikfw',
+   'AIzaSyBwT7_aSaryzJx_FYdFwsmbVYiIDVbf0EY',
+   'AIzaSyAS3GJlkNH8r2tpAIKnqYh_tui3g1fKZB4'
+   ],
+   currentIndex: 0
+}
+
+guesslist = [];
+
+ var img = new Image();
+ var image_result = {
+  result: [],
+  index: 0
+ };
+
+ function hndlr(response) {
+    console.log("handle response...");
+    if (response.items == undefined) {
+       console.log("error occured");
+       // error handling
+       if (response.error != undefined) {
+          console.log("exceeds limit");
+          googleAppKey.currentIndex += 1;
+          loadGoogleImage();   // retry
+       }
+       return;
+    }
+    if (response.items.length >= 1) {
+      console.log("Valid response");
+       image_result.result = response;
+       image_result.index = 0;
+       var item = response.items[0];
+       img.src = item.link;
+    }
+ }    
+
+ function loadGoogleImage() {
+        console.log("load google image");
+       var keyword = guesslist[Math.floor(Math.random()*guesslist.length)];
+       console.log("loading " + keyword);
+       var idx = googleAppKey.currentIndex % googleAppKey.items.length;
+       var appkey = googleAppKey.items[idx];
+       console.log("Using app key: " + idx);
+       $.ajax({
+             url: 'https://www.googleapis.com/customsearch/v1?key='
+                   + appkey +'&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image&imgSize=medium',
+             context: document.body,
+             success: function(responseText) {
+                 eval(responseText);
+             }
+         });
+ }
 
 function main (session) {
 
@@ -53,107 +102,93 @@ function main (session) {
 
    session.register('com.google.guesswho.submit', submitGuess);
 
-   // // return set of present votes on request
-   // var getVote = function() {
-   //    var votesArr = [];
-   //    for (var flavor in votes) {
-   //       if (votes.hasOwnProperty(flavor)) {
-   //          votesArr.push({
-   //             subject: flavor,
-   //             votes: votes[flavor]
-   //          })
-   //       }
-   //    }
-   //    console.log("received request for current vote count");
-   //    return votesArr;
-   // };
+   // Pixelate
+   var canvas = document.getElementById("demo_body_img");
+   var ctx = canvas.getContext('2d');
 
-   // handle vote submission
-   // var submitVote = function(args, kwargs, details) {
-   //    var flavor = args[0];
-   //    votes[flavor] += 1;
+   /// turn off image smoothing - this will give the pixelated effect
+   ctx.mozImageSmoothingEnabled = false;
+   ctx.webkitImageSmoothingEnabled = false;
+   ctx.imageSmoothingEnabled = false;
 
-   //    var res = {
-   //       subject: flavor,
-   //       votes: votes[flavor]
-   //    };
+   /// wait until image is actually available
+   img.onload = guessStart;
+   img.onerror = imgError;
 
-   //    // publish the vote event
-   //    session.publish("io.crossbar.demo.vote.onvote", [res]);
-
-   //    console.log("received vote for " + flavor);
-
-   //    return "voted for " + flavor;
-   // };
-
-   // // reset vote count
-   // var resetVotes = function() {
-   //    for (var fl in votes) {
-   //       if (votes.hasOwnProperty(fl)) {
-   //          votes[fl] = 0;
-   //       }
-   //    }
-   //    // publish the reset event
-   //    session.publish("io.crossbar.demo.vote.onreset");
-
-   //    console.log("received vote reset");
-
-   //    return "votes reset";
-   // };
+   /// some image, we are not struck with CORS restrictions as we
+   /// do not use pixel buffer to pixelate, so any image will do
+   // img.src = 'http://i.imgur.com/w1yg6qo.jpg';
 
 
-   // // register the procedures
-   // session.register('io.crossbar.demo.vote.get', getVote);
-   // session.register('io.crossbar.demo.vote.vote', submitVote);
-   // session.register('io.crossbar.demo.vote.reset', resetVotes);
+   $.get('http://localhost:8080/guesslist.txt', function(myContentFile) {
+      var lines = myContentFile.split("\n");
 
-   // Game loop
-   //
+      for(var i  in lines){
+         //save in object "guesslist": 
+         guesslist[i] = lines[i]
 
-   // var mainImage = $('.mainImage');
-   // mainImage.on('webkitAnimationEnd', function(event){
-   //    var el = $(this);
-   //    //Get the next image (obviously swap this for a non-local approach)
-   //    testImages.index = (testImages.index + 1) % testImages.list.length;
+         //print in console
+         console.log("line " + i + " :" + lines[i]);
+      }
+      console.log("my objects" + guesslist.length);
+      loadGoogleImage();
+   }, 'text');
+
+   
+   var intervalId;
+   function guessStart() {
+    var changeLeft = 4;
+    intervalId = setInterval(function() {
+      if (changeLeft === 0) {
+          showAnswer();
+        } else {
+        pixelate ( 2 * (6 - changeLeft));
+        changeLeft -= 1;
+        }
+      },1500)
+
+    function showAnswer() {
+      clearInterval(intervalId);
+      intervalId = undefined;
+      pixelate(100);  // show origin image
+      console.log("Round Over! Show Answer: XXXX");
+      setTimeout(loadGoogleImage, 3000);
+    }
+   }
+
+   function imgError(event){
+      console.log("img error");
+      if (intervalId != undefined) {
+        console.log("interval id " + intervalId);
+        clearInterval(intervalId);
+      }
       
-   //    //Restart the animation
-   //    el.removeClass('animate');      
-   //    setTimeout(function() {
-   //        el.addClass('animate');
-   //    },1);
-   //    //Swap in the next image
-   //    el.attr('src',testImages.list[testImages.index]);
-   // })
-
-}
-
-var googleAppKey = {
-   items:[
-   'AIzaSyBZfKB3rDMm7GRdLwa5HpCrn7erJFJcjnE',
-   'AIzaSyCzJGVD7YPPONquk_QIPtkwKvU4s32Ikfw',
-   'AIzaSyBwT7_aSaryzJx_FYdFwsmbVYiIDVbf0EY',
-   'AIzaSyAS3GJlkNH8r2tpAIKnqYh_tui3g1fKZB4'
-   ],
-   currentIndex: 0
-}
-
-var image_result = {};
-function hndlr(response) {
-   if (response.items == undefined) {
-      console.log("error occured");
-      // error handling
-      if (response.error != undefined) {
-         googleAppKey.currentIndex += 1;
-         loadGoogleImage();   // retry
+      if (image_result.index < image_result.result.items.length - 1) {
+        image_result.index += 1;
+        img.src = image_result.result.items[image_result.index].link;
       }
    }
-   if (response.items.length >= 1) {
-      image_result = response;
-      var item = response.items[0];
-      // in production code, item.htmlTitle should have the HTML entities escaped.
-      document.getElementById("demo_body_img").src = item.link;
+   
+
+   /// MAIN function
+   function pixelate(v) {
+      console.log("pixelating " + v);
+       var size = v * 0.01,
+
+           /// cache scaled width and height
+           w = canvas.width * size,
+           h = canvas.height * size;
+
+       /// draw original image to the scaled size
+       ctx.drawImage(img, 0, 0, w, h);
+
+       /// then draw that scaled image thumb back to fill canvas
+       /// As smoothing is off the result will be pixelated
+       ctx.drawImage(canvas, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
    }
-}    
+}
+
+
 
 connection.onopen = function (session) {
 
@@ -162,49 +197,5 @@ connection.onopen = function (session) {
    main(session);
 
 };
-
-myObject = []; //myObject[numberline] = "textEachLine";
-$.get('http://localhost:8080/guesslist.txt', function(myContentFile) {
-   var lines = myContentFile.split("\n");
-
-   for(var i  in lines){
-      //save in object "myObject": 
-      myObject[i] = lines[i]
-
-      //print in console
-      console.log("line " + i + " :" + lines[i]);
-   }
-   console.log("my objects" + myObject.length);
-
-   setInterval(loadGoogleImage,10000);
-   
-}, 'text');
-
-function loadGoogleImage() {
-      var keyword = myObject[Math.floor(Math.random()*myObject.length)];
-      console.log("loading " + keyword);
-      var idx = googleAppKey.currentIndex % googleAppKey.items.length;
-      var appkey = googleAppKey.items[idx];
-      console.log("Using app key: " + idx);
-      $.ajax({
-            url: 'https://www.googleapis.com/customsearch/v1?key='
-                  + appkey +'&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image',
-            context: document.body,
-            success: function(responseText) {
-                eval(responseText);
-            }
-        });
-}
-
-function imgError(image){
-   console.log("error img: " + image.src);
-   for (var i = 0; i < image_result.items.length - 1; i++) {
-      if (image.src === image_result.items[i].link) {
-         var nextItem = image_result.items[i+1];
-         document.getElementById("demo_body_img").src = nextItem.link;
-         break;
-      }
-   }
-}
 
 connection.open();
