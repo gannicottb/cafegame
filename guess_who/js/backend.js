@@ -127,13 +127,15 @@ function main (session) {
 
 }
 
+var image_result = {};
 function hndlr(response) {
-   if (response.items.length > 1) {
+   if (response.items.length >= 1) {
+      image_result = response;
       var item = response.items[0];
       // in production code, item.htmlTitle should have the HTML entities escaped.
       document.getElementById("demo_body_img").src = item.link;
    }
-}
+}    
 
 connection.onopen = function (session) {
 
@@ -160,10 +162,26 @@ $.get('http://localhost:8080/guesslist.txt', function(myContentFile) {
 
    function loadGoogleImage() {
       var keyword = myObject[Math.floor(Math.random()*myObject.length)];
-      document.getElementById('loadarea').src = 'https://www.googleapis.com/customsearch/v1?key=AIzaSyBZfKB3rDMm7GRdLwa5HpCrn7erJFJcjnE&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image';
+      console.log("loading " + keyword);
+      $.ajax({
+            url: 'https://www.googleapis.com/customsearch/v1?key=AIzaSyBZfKB3rDMm7GRdLwa5HpCrn7erJFJcjnE&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image',
+            context: document.body,
+            success: function(responseText) {
+                eval(responseText);
+            }
+        });
    }
-
 }, 'text');
 
+function imgError(image){
+   console.log("error img: " + image.src);
+   for (var i = 0; i < image_result.items.length - 1; i++) {
+      if (image.src === image_result.items[i].link) {
+         var nextItem = image_result.items[i+1];
+         document.getElementById("demo_body_img").src = nextItem.link;
+         break;
+      }
+   }
+}
 
 connection.open();
