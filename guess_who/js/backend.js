@@ -31,7 +31,9 @@ var googleAppKey = {
     'AIzaSyBZfKB3rDMm7GRdLwa5HpCrn7erJFJcjnE',
     'AIzaSyCzJGVD7YPPONquk_QIPtkwKvU4s32Ikfw',
     'AIzaSyBwT7_aSaryzJx_FYdFwsmbVYiIDVbf0EY',
-    'AIzaSyAS3GJlkNH8r2tpAIKnqYh_tui3g1fKZB4'
+    'AIzaSyAS3GJlkNH8r2tpAIKnqYh_tui3g1fKZB4',
+    'AIzaSyBqrlYZVP5Rx8o6hXotfmHFPVbYoSdfi3E',
+    'AIzaSyB7avM8P_ouc4lDhbfVXimbujLuh237pps'
   ],
   currentIndex: 0
 }
@@ -45,15 +47,25 @@ var image_result = {
 };
 
 function hndlr(response) {
-  if (response.items == undefined) {
-    console.log("error occured");
+  if (response.items === undefined) {
+    console.log("error occured: " + response.items);
     // error handling
     if (response.error != undefined) {
-      console.log("exceeds limit");
-      googleAppKey.currentIndex += 1;
-      loadGoogleImage(); // retry
+      if (response.error.code === 403) { //limit exceeds 
+        console.log("exceeds limit");
+        googleAppKey.currentIndex += 1;
+        if (googleAppKey.currentIndex >= googleAppKey.items.length) {
+          alert("FATAL: Limit ALL exceeds!");
+          console.log("FATAL: Limit ALL exceeds!");
+        } else {
+          console.log("Retry next key " + googleAppKey.currentIndex + "...");
+          return true;
+        }
+      } else {
+        alert("FATAL: Error " + response.error.code + ": " + response.error.message);
+        console.log("FATAL: Error " + response.error.code + ": " + response.error.message);
+      }
     }
-    return;
   }
   if (response.items.length >= 1) {
     console.log("Valid response");
@@ -62,20 +74,22 @@ function hndlr(response) {
     var item = response.items[0];
     img.src = item.link;
   }
+  return false;
 }
 
 function loadGoogleImage() {
   console.log("load google image");
   var keyword = guesslist[Math.floor(Math.random() * guesslist.length)];
   console.log("loading " + keyword);
-  var idx = googleAppKey.currentIndex % googleAppKey.items.length;
+  var idx = googleAppKey.currentIndex;
   var appkey = googleAppKey.items[idx];
   console.log("Using app key: " + idx);
   $.ajax({
     url: 'https://www.googleapis.com/customsearch/v1?key=' + appkey + '&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image&imgSize=medium',
     context: document.body,
     success: function(responseText) {
-      eval(responseText);
+      var retry = eval(responseText);
+      if (retry) loadGoogleImage(); // retry
     }
   });
 }
