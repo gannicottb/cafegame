@@ -148,19 +148,24 @@ $.get('http://localhost:8080/guesslist.txt', function(myContentFile) {
    var lines = myContentFile.split("\n");
 
    for(var i  in lines){
-      //save in object "myObject": 
-      myObject[i] = lines[i]
+      //save in object "myObject":
+      if(lines[i]!=""){ 
+         myObject[i] = lines[i]
+      }
 
       //print in console
       console.log("line " + i + " :" + lines[i]);
    }
-   console.log("my objects" + myObject.length);
+   console.log("number of terms: " + myObject.length);
 
-   setInterval(loadGoogleImage,10000);
+   runImageSearch();
+   setInterval(runImageSearch,20000);
 
-   function loadGoogleImage() {
+   function runImageSearch() {
       var keyword = myObject[Math.floor(Math.random()*myObject.length)];
       document.getElementById('loadarea').src = 'https://www.googleapis.com/customsearch/v1?key=AIzaSyBZfKB3rDMm7GRdLwa5HpCrn7erJFJcjnE&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image';
+      
+      //setTimeout(runImageSearch, 20000);
    }
 
 }, 'text');

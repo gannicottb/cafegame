@@ -228,7 +228,7 @@ button:hover
 .mainImage.animate
 {
 
-  -webkit-animation: blur-cycle 8s;  
+  -webkit-animation: blur-cycle 20s;  
 }
 
 @-webkit-keyframes blur-cycle{
