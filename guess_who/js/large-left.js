@@ -191,3 +191,7 @@ function main(session){
     }
   
 }
+
+// now actually open the connection
+//
+connection.open();
