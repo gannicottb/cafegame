@@ -1,6 +1,8 @@
 var wsuri = null;
 
-var trendingGuesses = new Array(); //Array to collect trending guesses
+
+var trendingGuesses = []; //Array to collect trending guesses
+
 
 
 // include AutobahnJS
@@ -81,50 +83,86 @@ function hndlr(response) {
 }
 
 function loadGoogleImage() {
-  console.log("load google image");
-  var keyword = guesslist[Math.floor(Math.random() * guesslist.length)];
-  console.log("loading " + keyword);
-  var idx = googleAppKey.currentIndex;
-  var appkey = googleAppKey.items[idx];
-  console.log("Using app key: " + idx);
-  $.ajax({
-    url: 'https://www.googleapis.com/customsearch/v1?key=' + appkey + '&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image&imgSize=medium',
-    context: document.body,
-    success: function(responseText) {
-      var retry = eval(responseText);
-      if (retry) loadGoogleImage(); // retry
-    }
-  });
+  // console.log("load google image");
+  // var keyword = guesslist[Math.floor(Math.random() * guesslist.length)];
+  // console.log("loading " + keyword);
+  // var idx = googleAppKey.currentIndex;
+  // var appkey = googleAppKey.items[idx];
+  // console.log("Using app key: " + idx);
+  // $.ajax({
+  //   url: 'https://www.googleapis.com/customsearch/v1?key=' + appkey + '&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image&imgSize=medium',
+  //   context: document.body,
+  //   success: function(responseText) {
+  //     var retry = eval(responseText);
+  //     if (retry) loadGoogleImage(); // retry
+  //   }
+  // });
 }
+
+var uidCounter = 0;
+var uids = [];
 
 function main(session) {
 
-  // Ok, so what are we actually doing here?
-  // Version 1: Users are submitting arbitrary text guesses
-  // Version 2: Users are choosing from a list of choices
-
-  // Handle guess submission
+  // Register new devices
   //
-  var submitGuess = function(args, kwargs, details) {
-    var guess = args[0];
-    var user = args[1];
-    console.log("received guess: " + guess + " from " + user);
-    session.publish("com.google.guesswho.onguess", [{
-      user: user,
-      guess: guess
-    }]);
+  var register = function(args, kwargs, details) {
+    uids[uidCounter] = {
+      uname: "guest" + uidCounter,
+      loggedin: false,
+      score: 0
+    };
+    return uidCounter++;
+  }
+
+  // User login
+  //
+  var login = function(args, kwargs, details) {
+    var user = uids[args[0]];
+    var result;
+    if (user == undefined || user == null) {
+      // handle error case
+      result = -1;
+      console.log("uid "+args[0]+ " not found.");
+    } else {
+      // Log them in
+      user.loggedin = true;
+      // Fetch score
+      result = user.score;
+      console.log("uid "+args[0]+" found and logged in.");
+    }
+    return result;
   }
 
   // Handle guess submission
   //
   var submitGuess = function(args, kwargs, details) {
     var guess = args[0];
-    var user = args[1];
-    console.log("received guess: " + guess + " from " + user);
+    var user = uids[args[1]];
+    if(user == undefined || user == null){
+      //do something reasonable
+    }else{
+      console.log("received guess: " + guess + " from " + user.uname);
+      session.publish("com.google.guesswho.onguess", [{
+        user: user,
+        guess: guess
+      }]);      
+    }
+  }
 
-    var guessAlreadyPresent; //Boolean flag to check if guess already exists in the list
 
-    guessAlreadyPresent = false;
+  // Handle guess submission
+  //
+  var submitGuess = function(args, kwargs, details) {
+    var guess = args[0];
+    var user = uids[args[1]];
+    if(user == undefined || user == null || user.loggedin == false){
+      //the user isn't registered or logged in
+      //throw an error of some kind
+      return;
+    }
+
+    var guessAlreadyPresent = false; //Boolean flag to check if guess already exists in the list
 
     //If a guess already exists in the list, update its count 
     if (trendingGuesses.length > 0) {
@@ -159,12 +197,16 @@ function main(session) {
     }
 
     session.publish("com.google.guesswho.onguess", [{
-      user: user,
+      user: user.uname,
       guess: guess
     }]);
   }
-
+  
+  // REGISTER RPC
+  //
   session.register('com.google.guesswho.submit', submitGuess);
+  session.register('com.google.guesswho.register', register);
+  session.register('com.google.guesswho.login', login);
 
   // Pixelate
   var canvas = document.getElementById("demo_body_img");
@@ -250,8 +292,6 @@ function main(session) {
     ctx.drawImage(canvas, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
   }
 }
-
-
 
 connection.onopen = function(session) {
 
