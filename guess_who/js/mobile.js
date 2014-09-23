@@ -51,6 +51,7 @@ function main(session) {
    session.call("com.google.guesswho.login", [Number(uid)]).then(
       function(result){
          session.log();
+         $("#user_name").html("guest"+uid);
          console.log("user is logged in with uid "+uid+", and their score is "+result);
 
    }, session.log);
