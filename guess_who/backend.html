@@ -3,10 +3,7 @@
 <head>
    <meta charset="UTF-8">
    <link rel="shortcut icon" href="img/favicon.ico">
-   <title>Main Display</title>
-   <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-   <script src="js/autobahn.min.js"></script>
-   <script src="js/backend.js"></script>
+   <title>Backend</title>
    <link rel="stylesheet" href="css/vote.css">
 </head>
 <body>
@@ -14,7 +11,7 @@
    <header>
       <div id="header_inner">
          <div id="demo_title">
-            <span>Vote</span>
+            <span>Backend</span>
          </div>
          <a class="navbar-brand" href="/">
             <img src="img/crossbar_icon_inverted.png" alt="crossbar logo inverted" width="60" height="60">
@@ -25,12 +22,18 @@
       </div>
    </header>
 
-   <div id="demo_body">
-      <h1>NAME THAT PERSON!</h1>
-      <canvas id="demo_body_img" width="500" height="400" ></canvas>
+  <div id="demo_body">
+      <h1>
+         Guess Who Demo Backend
+      </h1>
+      <p>
+         Open console to view log output.
+      </p>
    </div>
-   
+
    <script>AUTOBAHN_DEBUG = true;</script>
+   <script src="js/autobahn.min.js"></script>
+   <script src="js/backend.js"></script>
    
 </body>
 </html>
