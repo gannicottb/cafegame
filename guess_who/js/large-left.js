@@ -76,9 +76,10 @@ function hndlr(response) {
   return false;
 }
 
+var keyword;
 function loadGoogleImage() {
   console.log("load google image");
-  var keyword = guesslist[Math.floor(Math.random() * guesslist.length)];
+  keyword = guesslist[Math.floor(Math.random() * guesslist.length)];
   console.log("loading " + keyword);
   var idx = googleAppKey.currentIndex;
   var appkey = googleAppKey.items[idx];
@@ -174,6 +175,7 @@ function main(session){
     var intervalId;
 
     function guessStart() {
+      $("#person_name").html("NAME THAT PERSON!");
       console.log("Guess start");
       var changeLeft = 4;
       intervalId = setInterval(function() {
@@ -190,6 +192,7 @@ function main(session){
         intervalId = undefined;
         pixelate(100); // show origin image
         console.log("Round Over! Show Answer: XXXX");
+        $("#person_name").html("ANSWER: " + keyword);
         setTimeout(loadGoogleImage, 3000);
       }
     }
