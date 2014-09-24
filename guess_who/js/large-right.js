@@ -53,7 +53,7 @@ function main(session) {
       var item = document.createElement('li');
       item.className = 'trendinglist';
       // Set its contents:
-      item.appendChild(document.createTextNode(guesses[i].name));
+      item.appendChild(document.createTextNode(guesses[i].name+": "+guesses[i].count+" guesses"));
       var prog = document.createElement('progress');
       prog.id = "progressbar" + i;
       prog.value = guesses[i].count;
