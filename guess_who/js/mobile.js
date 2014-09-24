@@ -64,7 +64,7 @@ function main(session) {
       function(args) {
          var event = args[0];
          console.log(event);
-         $('#guessList').append("<p>" + event.guess + " from " + event.user);
+         //$('#guessList').append("<p>" + event.guess + " from " + event.user);
          //document.getElementById("guessList").getElementsByTagName("span").value = event.user + "from" + event.guess;
       });
 }

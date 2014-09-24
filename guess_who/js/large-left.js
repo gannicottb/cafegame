@@ -100,10 +100,42 @@ function main(session){
    session.subscribe("com.google.guesswho.onguess",
       function(args) {
          var event = args[0];
+         //console.log("ON GUESS !!!!!!!!!!!!!!!!!!!!!!!");      
          console.log(event);      
-         $('#guessList').append("<p>"+event.guess+" from " + event.user);   
+
+         printGuesses(event.guesses);
+
+         //$('#guessList').append("<p>"+event.guess+" from " + event.user);   
          //document.getElementById("guessList").getElementsByTagName("span").value = event.user + "from" + event.guess;
       });
+
+  var printGuesses = function(guesses)
+  {
+    //Create a list item
+    var list = document.createElement('ul');
+
+    for(var i = 0; i < guesses.length; i++) {
+
+        console.log(guesses[i]);
+
+        // Create the list item:
+        var item = document.createElement('li');
+
+        // Set its contents:
+        item.appendChild(document.createTextNode(guesses[i].name));
+
+        // Add it to the list:
+        list.appendChild(item);
+    }
+
+    var listElement = document.getElementById('guessList');
+
+    if(listElement.hasChildNodes() === true)
+      listElement.removeChild(listElement.childNodes[0]);
+    
+    listElement.appendChild(list);
+    
+  }
 
 
   // Pixelate

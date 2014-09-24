@@ -108,7 +108,9 @@ function main(session) {
 
     session.publish("com.google.guesswho.onguess", [{
       user: user.uname,
-      guess: guess
+      guess: guess,
+      guesses: trendingGuesses
+
     }]);
   }
 
