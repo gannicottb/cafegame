@@ -30,7 +30,7 @@ function main(session) {
   // 
   session.subscribe("com.google.guesswho.onguess",
     function(args) {
-      var event = args[0];      
+      var event = args[0];
       console.log(event);
       printGuesses(event.guesses);
     });
@@ -39,15 +39,27 @@ function main(session) {
     //Create a list item
     var list = document.createElement('ul');
 
+    var total = 0;
+
+    for (var i = guesses.length - 1; i >= 0; i--) {
+      total += guesses[i].count;
+    }
+
     for (var i = 0; i < guesses.length; i++) {
 
       console.log(guesses[i]);
 
       // Create the list item:
       var item = document.createElement('li');
-
+      item.className = 'trendinglist';
       // Set its contents:
       item.appendChild(document.createTextNode(guesses[i].name));
+      var prog = document.createElement('progress');
+      prog.id = "progressbar" + i;
+      prog.value = guesses[i].count;
+      prog.max = total;
+      prog.className = 'progress';
+      item.appendChild(prog);
 
       // Add it to the list:
       list.appendChild(item);
