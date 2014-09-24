@@ -47,7 +47,7 @@ function main(session) {
       var item = document.createElement('li');
 
       // Set its contents:
-      item.appendChild(document.createTextNode(guesses[i].name));
+      item.appendChild(document.createTextNode(guesses[i].name+": "+guesses[i].count+" guesses"));
 
       // Add it to the list:
       list.appendChild(item);
