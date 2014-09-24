@@ -71,7 +71,7 @@ function hndlr(response) {
     image_result.result = response;
     image_result.index = 0;
     var item = response.items[0];
-    img.src = item.link;
+    img.src = item.link + '?' + new Date().getTime(); // cache bust
   }
   return false;
 }
@@ -142,6 +142,7 @@ function main(session){
     var intervalId;
 
     function guessStart() {
+      console.log("Guess start");
       var changeLeft = 4;
       intervalId = setInterval(function() {
         if (changeLeft === 0) {
@@ -170,7 +171,7 @@ function main(session){
 
       if (image_result.index < image_result.result.items.length - 1) {
         image_result.index += 1;
-        img.src = image_result.result.items[image_result.index].link;
+        img.src = image_result.result.items[image_result.index].link + '?' + new Date().getTime();
       }
     }
 
