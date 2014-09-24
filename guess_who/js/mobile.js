@@ -36,13 +36,13 @@ function main(session) {
    uid = sessionStorage.getItem("uid");
    //Log in to the server (and get auto-registered if no uid is present)
    session.call("com.google.guesswho.login", [uid]).then(
-      function(user){
+      function(user) {
          // Store the uid returned from the server  
-         uid = user.uid;       
+         uid = user.uid;
          sessionStorage.setItem("uid", uid);
          // Display the username
          $("#user_name").html(user.uname);
-         console.log("user is logged in with uid "+uid+", and their score is "+user.score);
+         console.log("user is logged in with uid " + uid + ", and their score is " + user.score);
 
       },
       session.log
@@ -52,7 +52,7 @@ function main(session) {
    var guessInput = $("#inputGuess");
    var guessButton = $("#submitGuess");
    //Declare an event handlers
-   guessButton.on('click',function(event) {
+   guessButton.on('click', function(event) {
       session.call("com.google.guesswho.submit", [guessInput.val(), Number(uid)]).then(
          session.log, session.log
       );
@@ -63,8 +63,8 @@ function main(session) {
    session.subscribe("com.google.guesswho.onguess",
       function(args) {
          var event = args[0];
-         console.log(event);      
-         $('#guessList').append("<p>"+event.guess+" from " + event.user);   
+         console.log(event);
+         $('#guessList').append("<p>" + event.guess + " from " + event.user);
          //document.getElementById("guessList").getElementsByTagName("span").value = event.user + "from" + event.guess;
       });
 }
