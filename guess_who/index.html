@@ -32,12 +32,18 @@
 
       #demo_body {
          width: 90%;
-         max-width: 400px;
          margin: 0 auto;
       }
 
       #demo_body p {
          text-align: left;
+      }
+
+      .demo_window {
+         width: 550px;
+         height: 350px;
+         float: left;
+         margin: 10px;
       }
 
    </style>
@@ -63,16 +69,16 @@
          Guess Who Demo Start
       </h1>
 
+      <div>
+         <iframe class="demo_window" src="large-left.html"></iframe>
+         <iframe class="demo_window" src="large-right.html"></iframe>
+      </div>
+
       <p>
          To start the Guess Who Demo, please first start <strong>one</strong> instance of the backend:
       </p>
       <a href="backend.html" target="_blank">Start Backend</a>
-
-      <p>
-         Then start an instance of Main Display (left):
-      </p>
-      <a href="large-left.html" target="_blank">Start Main Display</a>
-
+      
       <p>
          Then start <strong>multiple</strong> mobile frontend instances:
       </p>
