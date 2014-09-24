@@ -27,43 +27,36 @@ connection.onopen = function(session, details) {
 
 };
 
-var uid;
+var uid = null;
 
 function main(session) {
+
    //Check to see if the device already has a user id
+   //Note: needs to be localStorage for mobile testing
    uid = sessionStorage.getItem("uid");
-   if (uid == null) {
-      //The device does not have a user id, so let's get one
-      session.call("com.google.guesswho.register").then(
-         function(result) {
-            //Backend returned us our uid
-            uid = result;
-            //Store uid in sessionStorage
-            sessionStorage.setItem("uid", uid);
-         },
-         function(error){            
-            session.log
-            
-         }
-      );
-   }
-   //Ok, the device has its uid now, so let's login to the server
-   session.call("com.google.guesswho.login", [Number(uid)]).then(
-      function(result){
-         session.log();
-         $("#user_name").html("guest"+uid);
-         console.log("user is logged in with uid "+uid+", and their score is "+result);
+   //Log in to the server (and get auto-registered if no uid is present)
+   session.call("com.google.guesswho.login", [uid]).then(
+      function(user){
+         // Store the uid returned from the server  
+         uid = user.uid;       
+         sessionStorage.setItem("uid", uid);
+         // Display the username
+         $("#user_name").html(user.uname);
+         console.log("user is logged in with uid "+uid+", and their score is "+user.score);
 
-   }, session.log);
-
+      },
+      session.log
+   );
 
    // Wire up the guess button
-   var guessInput = document.getElementById("inputGuess");
-   var guessButton = document.getElementById("submitGuess");
+   var guessInput = $("#inputGuess");
+   var guessButton = $("#submitGuess");
    //Declare an event handlers
-   guessButton.onclick = function(event) {
-      session.call("com.google.guesswho.submit", [guessInput.value, Number(uid)]).then(session.log, session.log);
-   }
+   guessButton.on('click',function(event) {
+      session.call("com.google.guesswho.submit", [guessInput.val(), Number(uid)]).then(
+         session.log, session.log
+      );
+   });
 
    // Subscribe to trending guesses
    // 

@@ -1,13 +1,5 @@
 var wsuri = null;
 
-<<<<<<< HEAD
-
-var trendingGuesses = []; //Array to collect trending guesses
-
-
-
-=======
->>>>>>> merge-move-refactor
 // include AutobahnJS
 try {
   var autobahn = require('autobahn');
@@ -38,51 +30,35 @@ var uids = [];
 var trendingGuesses = []; //Array to collect trending guesses
 
 function main(session) {
-
-  // Register new devices
-  //
-  var register = function(args, kwargs, details) {
-    uids[uidCounter] = {
-      uname: "guest" + uidCounter,
-      loggedin: false,
-      score: 0
-    };
-    return uidCounter++;
-  }
-
-var uidCounter = 0;
-var uids = [];
-
-function main(session) {
-
-  // Register new devices
-  //
-  var register = function(args, kwargs, details) {
-    uids[uidCounter] = {
-      uname: "guest" + uidCounter,
-      loggedin: false,
-      score: 0
-    };
-    return uidCounter++;
-  }
-
   // User login
   //
-  var login = function(args, kwargs, details) {
-    var user = uids[args[0]];
-    var result;
-    if (user == undefined || user == null) {
-      // handle error case
-      result = -1;
-      console.log("uid "+args[0]+ " not found.");
-    } else {
-      // Log them in
-      user.loggedin = true;
-      // Fetch score
-      result = user.score;
-      console.log("uid "+args[0]+" found and logged in.");
+  var login = function(args, kwargs, details) {    
+    var uid = args[0];//it's a string
+    console.log("uid "+args[0]+" logging in"); 
+    // Register if the user passes in a null id
+    if (uid == null){
+      uid = register();
     }
-    return result;
+    // Grab the user from the "database"
+    var user = uids[Number(uid)];    
+    // Log them in
+    user.loggedin = true;
+    
+    console.log("User "+user.uname+" is logged in.");
+    
+    return user;
+  }
+
+  // Register new devices
+  //
+  var register = function() {
+    uids[uidCounter] = {
+      uid: uidCounter,
+      uname: "guest" + uidCounter,
+      loggedin: false,
+      score: 0
+    };
+    return uidCounter++;
   }
 
   // Handle guess submission
@@ -139,7 +115,6 @@ function main(session) {
   // REGISTER RPC
   //
   session.register('com.google.guesswho.submit', submitGuess);
-  session.register('com.google.guesswho.register', register);
   session.register('com.google.guesswho.login', login);
 
 }
