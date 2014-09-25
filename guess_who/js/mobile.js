@@ -24,12 +24,15 @@ connection.onopen = function(session, details) {
 
    main(session);
 
-
 };
 
 var uid = null;
 
 function main(session) {
+
+   //EXAMPLE EJS
+   //var html = new EJS({url: 'templates/temp.ejs'}).render(data);
+   //EXAMPLE EJS
 
    //Check to see if the device already has a user id
    //Note: needs to be localStorage for mobile testing
