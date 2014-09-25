@@ -263,3 +263,23 @@ button:hover
 
    color: #aaa;
 }
+
+.progress {  
+    background-color: #f3f3f3;  
+    border: 0;  
+    height: 18px;  
+    border-radius: 9px;
+    float: right;  
+}
+
+.demo_window {
+    width: 550px;
+    height: 350px;
+    float: left;
+    margin: 10px;
+}
+
+.trendinglist {
+  list-style-type: none;
+  margin: 20px;
+}

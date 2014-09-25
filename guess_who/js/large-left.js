@@ -32,7 +32,8 @@ var googleAppKey = {
     'AIzaSyBwT7_aSaryzJx_FYdFwsmbVYiIDVbf0EY',
     'AIzaSyAS3GJlkNH8r2tpAIKnqYh_tui3g1fKZB4',
     'AIzaSyBqrlYZVP5Rx8o6hXotfmHFPVbYoSdfi3E',
-    'AIzaSyB7avM8P_ouc4lDhbfVXimbujLuh237pps'
+    'AIzaSyB7avM8P_ouc4lDhbfVXimbujLuh237pps',
+    'AIzaSyCpElm3KrFqHAGWtgEukyl6pXWlUOyzQ-Q'
   ],
   currentIndex: 0
 }
@@ -76,9 +77,10 @@ function hndlr(response) {
   return false;
 }
 
+var keyword;
 function loadGoogleImage() {
   console.log("load google image");
-  var keyword = guesslist[Math.floor(Math.random() * guesslist.length)];
+  keyword = guesslist[Math.floor(Math.random() * guesslist.length)];
   console.log("loading " + keyword);
   var idx = googleAppKey.currentIndex;
   var appkey = googleAppKey.items[idx];
@@ -97,13 +99,45 @@ function main(session){
 
    // Subscribe to trending guesses
    // 
-   session.subscribe("com.google.guesswho.onguess",
-      function(args) {
-         var event = args[0];
-         console.log(event);      
-         $('#guessList').append("<p>"+event.guess+" from " + event.user);   
-         //document.getElementById("guessList").getElementsByTagName("span").value = event.user + "from" + event.guess;
-      });
+  //  session.subscribe("com.google.guesswho.onguess",
+  //     function(args) {
+  //        var event = args[0];
+  //        //console.log("ON GUESS !!!!!!!!!!!!!!!!!!!!!!!");      
+  //        console.log(event);      
+
+  //        printGuesses(event.guesses);
+
+  //        //$('#guessList').append("<p>"+event.guess+" from " + event.user);   
+  //        //document.getElementById("guessList").getElementsByTagName("span").value = event.user + "from" + event.guess;
+  //     });
+
+  // var printGuesses = function(guesses)
+  // {
+  //   //Create a list item
+  //   var list = document.createElement('ul');
+
+  //   for(var i = 0; i < guesses.length; i++) {
+
+  //       console.log(guesses[i]);
+
+  //       // Create the list item:
+  //       var item = document.createElement('li');
+
+  //       // Set its contents:
+  //       item.appendChild(document.createTextNode(guesses[i].name));
+
+  //       // Add it to the list:
+  //       list.appendChild(item);
+  //   }
+
+  //   var listElement = document.getElementById('guessList');
+
+  //   if(listElement.hasChildNodes() === true)
+  //     listElement.removeChild(listElement.childNodes[0]);
+    
+  //   listElement.appendChild(list);
+    
+  // }
 
 
   // Pixelate
@@ -142,6 +176,7 @@ function main(session){
     var intervalId;
 
     function guessStart() {
+      $("#person_name").html("NAME THAT PERSON!");
       console.log("Guess start");
       var changeLeft = 4;
       intervalId = setInterval(function() {
@@ -151,13 +186,14 @@ function main(session){
           pixelate(2 * (6 - changeLeft));
           changeLeft -= 1;
         }
-      }, 1500)
+      }, 5000)
 
       function showAnswer() {
         clearInterval(intervalId);
         intervalId = undefined;
         pixelate(100); // show origin image
         console.log("Round Over! Show Answer: XXXX");
+        $("#person_name").html("ANSWER: " + keyword);
         setTimeout(loadGoogleImage, 3000);
       }
     }
