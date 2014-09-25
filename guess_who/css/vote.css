@@ -272,6 +272,13 @@ button:hover
     float: right;  
 }
 
+.demo_window {
+    width: 550px;
+    height: 350px;
+    float: left;
+    margin: 10px;
+}
+
 .trendinglist {
   list-style-type: none;
   margin: 20px;

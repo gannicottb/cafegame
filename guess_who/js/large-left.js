@@ -186,7 +186,7 @@ function main(session){
           pixelate(2 * (6 - changeLeft));
           changeLeft -= 1;
         }
-      }, 1500)
+      }, 5000)
 
       function showAnswer() {
         clearInterval(intervalId);
