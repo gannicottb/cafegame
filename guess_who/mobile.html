@@ -2,52 +2,65 @@
 <html lang="en">
 <head>
    <meta charset="UTF-8">
-   <link rel="shortcut icon" href="img/favicon.ico">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
    <title>Mobile</title>
-   <link rel="stylesheet" href="css/vote.css">
 </head>
 <body>
 
    <header>
       <div id="header_inner">
          <div id="demo_title">
-            <span>Guess Who?</span>
+            <center><span><h1>Guess Who?</h1></span></center>
          </div>
-         <a class="navbar-brand" href="/">
-            <img src="img/crossbar_icon_inverted.png" alt="crossbar logo inverted" width="60" height="60">
-            <span class="fontFace">
-               <span>Google</span><span>Collaborative Games</span>
-            </span>
-         </a>
       </div>
    </header>
 
-   <div class="demo_links">     
+   <div class="demo_links"> 
+      <center> 
       <div>
       Hello,
          <span id="user_name">
              Google visitor
          </span>!
       </div>
-
+   </center>
    </div>
 
-   <div id="demo_body">      
-      <input type="text" id="inputGuess" placeholder="What do you think it is?"/>      
-      <br/>
-      <button id="submitGuess">
-         Guess!
-      </button>
+   <hr size="3" align="center" noshade width="90%" color="666666">
+
+   <div id="demo_body">
+      <center>      
+         <input type="text" id="inputGuess" placeholder="What do you think it is?" width="48" height="48"/>      
+         <br/>
+         <button id="submitGuess">
+            Guess!
+         </button>
+      </center>
    </div>         
-      
+   
+   <br><br>   
    <div id="guessList">
-      <span>Guesses will appear here</span>
+      <center><span>Guesses will appear here</span></center> 
+   </div>
+
+   <hr size="3" align="center" noshade width="90%" color="666666">
+
+   <div>
+      <center>
+         <a class="navbar-brand" href="/">
+            <span class="fontFace">
+               <span>home</span>
+            </span>
+         </a>
+   </center>
    </div>
 
    <script>AUTOBAHN_DEBUG = true;</script>
    <script src="js/autobahn.min.js"></script>
    <script src="js/mobile.js"></script>
    <script src="js/jquery-1.11.1.js"></script>
+
+   
 
 </body>
 </html>
