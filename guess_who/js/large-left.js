@@ -32,7 +32,8 @@ var googleAppKey = {
     'AIzaSyBwT7_aSaryzJx_FYdFwsmbVYiIDVbf0EY',
     'AIzaSyAS3GJlkNH8r2tpAIKnqYh_tui3g1fKZB4',
     'AIzaSyBqrlYZVP5Rx8o6hXotfmHFPVbYoSdfi3E',
-    'AIzaSyB7avM8P_ouc4lDhbfVXimbujLuh237pps'
+    'AIzaSyB7avM8P_ouc4lDhbfVXimbujLuh237pps',
+    'AIzaSyCpElm3KrFqHAGWtgEukyl6pXWlUOyzQ-Q'
   ],
   currentIndex: 0
 }
