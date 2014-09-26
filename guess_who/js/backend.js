@@ -26,8 +26,16 @@ var connection = new autobahn.Connection({
 });
 
 var uidCounter = 0;
-var uids = [];
+var users = [];
 var trendingGuesses = []; //Array to collect trending guesses
+
+function verify(user){
+  if(user == undefined || user == null || user.loggedin == false){
+      //the user isn't registered or logged in
+      //throw an error of some kind
+      throw new autobahn.Error('com.google.guesswho.error', ["User isn't registered or logged in"], user);
+    }
+}
 
 function main(session) {
   // User login
@@ -40,11 +48,11 @@ function main(session) {
       uid = register();
     }
     // Grab the user from the "database"
-    var user = uids[Number(uid)];    
+    var user = users[Number(uid)];    
     // Log them in
     user.loggedin = true;
     
-    console.log("User "+user.uname+" is logged in.");
+    console.log("User "+user.name+" is logged in.");
     
     return user;
   }
@@ -52,20 +60,35 @@ function main(session) {
   // Register new devices
   //
   var register = function() {
-    uids[uidCounter] = {
+    users[uidCounter] = {
       uid: uidCounter,
-      uname: "guest" + uidCounter,
+      name: "guest" + uidCounter,
       loggedin: false,
       score: 0
     };
     return uidCounter++;
   }
 
+  // Change user names
+  //
+  var changename = function(args, kwargs, details){
+    var user = users[args[0]];
+    var new_name = args[1];
+    
+    verify(user); // throw an error if the user doesn't exist
+
+    console.log("User "+user.uid+" changed their name to "+new_name);
+    user.name = new_name;
+
+    return user.name; //receipt
+
+  }
+
   // Handle guess submission
   //
   var submitGuess = function(args, kwargs, details) {
     var guess = args[0];
-    var user = uids[args[1]];
+    var user = users[args[1]];
     if(user == undefined || user == null || user.loggedin == false){
       //the user isn't registered or logged in
       //throw an error of some kind
@@ -107,7 +130,7 @@ function main(session) {
     }
 
     session.publish("com.google.guesswho.onguess", [{
-      user: user.uname,
+      user: user.name,
       guess: guess,
       guesses: trendingGuesses
 
@@ -118,6 +141,7 @@ function main(session) {
   //
   session.register('com.google.guesswho.submit', submitGuess);
   session.register('com.google.guesswho.login', login);
+  session.register('com.google.guesswho.changename', changename);
 
 }
 
