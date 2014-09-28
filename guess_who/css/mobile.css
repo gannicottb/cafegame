@@ -1,0 +1,9 @@
+.selected { 
+	border: 5px solid blue;
+}
+.correct{
+	background-color: greenYellow;
+}
+.incorrect{
+	background-color: orangeRed;
+}

@@ -38,9 +38,13 @@ var googleAppKey = {
   currentIndex: 0
 }
 
-guesslist = [];
+//guesslist = [];
+
+var round = 0;
+var keyword = "";
 
 var img = new Image();
+
 var image_result = {
   result: [],
   index: 0
@@ -77,10 +81,7 @@ function hndlr(response) {
   return false;
 }
 
-var keyword;
-function loadGoogleImage() {
-  console.log("load google image");
-  keyword = guesslist[Math.floor(Math.random() * guesslist.length)];
+function loadGoogleImage(keyword) {
   console.log("loading " + keyword);
   var idx = googleAppKey.currentIndex;
   var appkey = googleAppKey.items[idx];
@@ -107,27 +108,12 @@ function main(session){
     ctx.imageSmoothingEnabled = false;
 
     /// wait until image is actually available
-    img.onload = guessStart;
+    img.onload = guessStart; //so load the image to start everything
     img.onerror = imgError;
 
     /// some image, we are not struck with CORS restrictions as we
     /// do not use pixel buffer to pixelate, so any image will do
     // img.src = 'http://i.imgur.com/w1yg6qo.jpg';
-
-
-    $.get('http://localhost:8080/guesslist.txt', function(myContentFile) {
-      var lines = myContentFile.split("\n");
-
-      for (var i in lines) {
-        //save in object "guesslist": 
-        guesslist[i] = lines[i]
-
-        //print in console
-        console.log("line " + i + " :" + lines[i]);
-      }
-      console.log("my objects" + guesslist.length);
-      loadGoogleImage();
-    }, 'text');
 
 
     var intervalId;
@@ -150,8 +136,16 @@ function main(session){
         intervalId = undefined;
         pixelate(100); // show origin image
         console.log("Round Over! Show Answer: XXXX");
+        
+        // Publish roundOver event (backend wants to know)        
+        session.publish("com.google.guesswho.roundOver", [], {
+          round: round
+        });
         $("#person_name").html("ANSWER: " + keyword);
-        setTimeout(loadGoogleImage, 3000);
+        //
+        //wait for command from backend to show next image
+        //
+        //setTimeout(loadGoogleImage, 3000);
       }
     }
 
@@ -183,9 +177,22 @@ function main(session){
       /// As smoothing is off the result will be pixelated
       ctx.drawImage(canvas, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
     }
+
+    var onRoundStart = function(args, kwargs, details){
+      // Update what round we're on
+      round = kwargs.round;
+      keyword = kwargs.answers[0].keyword;
+      // Use this to determine how many intervals to display
+      var duration = kwargs.duration;
+      // Load the image to start the round
+      loadGoogleImage(keyword)
+    }
+
+    session.subscribe("com.google.guesswho.roundStart", onRoundStart);
   
 }
 
+
 // now actually open the connection
 //
-//connection.open();
+connection.open();

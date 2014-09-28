@@ -28,12 +28,28 @@ connection.onopen = function(session, details) {
 function main(session) {
   // Subscribe to trending guesses
   // 
+  // session.subscribe("com.google.guesswho.onguess",
+  //   function(args) {
+  //     var event = args[0];
+  //     console.log(event);
+  //     printGuesses(event.guesses);
+  //   });
+
   session.subscribe("com.google.guesswho.onguess",
-    function(args) {
-      var event = args[0];
-      console.log(event);
-      printGuesses(event.guesses);
-    });
+    function(args, kwargs, details){
+      new_guess = kwargs;
+      // And then add the new_guess to the screen
+    }).then(
+
+      function(success){
+        console.log('subscribed to', success);
+      },
+
+      function(error){
+        console.log('failed to subscribe', error);
+      }
+      
+    );
 
   var printGuesses = function(guesses) {
     //Create a list item
