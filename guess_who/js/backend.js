@@ -35,7 +35,7 @@ var loggedInUsers = 0;
 var guessList = [];
 var roundInProgress = false;
 var answers = [];
-var round = 0; // keep track of what round we're on
+var round = -1; // keep track of what round we're on
 //var trendingGuesses = []; //Array to collect trending guesses
 
 function verify(user){
@@ -168,7 +168,7 @@ function main(session) {
   //
   var startNextRound = function(){
 
-    round++;
+    round = (round+1)%guessList.length;
     roundInProgress = true;
     //TODO:
     //Start the timer

@@ -26,9 +26,6 @@ connection.onopen = function(session, details) {
 
 };
 
-// var uid = null;
-// var uname = "";
-
 var my = {id: null, name: "", score: 0}
 
 function set_name(new_name){
@@ -63,8 +60,6 @@ function main(session) {
    session.call("com.google.guesswho.login", [my.id]).then(
       function(user) {
          // Store the user object returned from the server  
-         // uid = user.uid;
-         // uname = user.name;
          my = user;
          sessionStorage.setItem("id", my.id);
          // Display the username
