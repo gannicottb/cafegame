@@ -25,21 +25,35 @@ var connection = new autobahn.Connection({
   realm: 'realm1'
 });
 
+window.backend = window.backend || {
+  constants: {
+    NUMBER_OF_ANSWERS: 8,
+    ROUND_DURATION: 20000, // in ms
+    MIN_PLAYERS_TO_START: 2 //set to 2 for DEBUG
+  }
+  // },
+  // correct_id = null,
+  // uid_counter = 0,
+  // users = [],
+  // logged_in_users = 0,
+  // guess_list = [],
+  // round_in_progress = false,
+  // answers = [],
+  // round = -1 // keep track of what round we're on
+
+};
+
 var correct_id = null;
-var NUMBER_OF_ANSWERS = 8;
-var ROUND_DURATION = 20000; // in ms
-var MIN_PLAYERS_TO_START = 2; //set to 2 for DEBUG
-var uidCounter = 0;
+var uid_counter = 0;
 var users = [];
-var loggedInUsers = 0;
-var guessList = [];
-var roundInProgress = false;
+var logged_in_users = 0;
+var guess_list = [];
+var round_in_progress = false;
 var answers = [];
 var round = -1; // keep track of what round we're on
-//var trendingGuesses = []; //Array to collect trending guesses
 
 function verify(user){
-  if(user == undefined || user == null || user.loggedin == false){
+  if(user == undefined || user == null || user.logged_in == false){
       //the user isn't registered or logged in
       //throw an error of some kind
       throw new autobahn.Error('com.google.guesswho.error', ["User isn't registered or logged in"], user);
@@ -57,11 +71,6 @@ function shuffle(o){ //v1.0
     return o;
 };
 
-// function nextKeyword(){
-//   //I'd rather just shuffle the guessList at the beginning and then go through in order
-//   return guessList[Math.floor(Math.random() * guesslist.length)];
-// }
-
 function main(session) {
 
   //Get the curated list of people
@@ -70,14 +79,16 @@ function main(session) {
     var lines = myContentFile.split("\n");
     for (var i = 0; i < lines.length; i++) {
       //save in object "guesslist": 
-      guessList[i] = {id: i, keyword: lines[i]}
-      console.log(guessList[i].id, guessList[i].keyword);
+      guess_list[i] = {id: i, keyword: lines[i]}
+      console.log(guess_list[i].id, guess_list[i].keyword);
     }
-    console.log("guessList.length =" + guessList.length);
+    console.log("guess_list.length =" + guess_list.length);
     //Shuffle the keywords in the list
-    guessList = shuffle(guessList);
+    guess_list = shuffle(guess_list);
   }, 'text');
 
+  //RPC procedures
+  //
 
   // User login
   //
@@ -91,15 +102,20 @@ function main(session) {
     // Grab the user from the "database"
     var user = lookup(uid);    
     // Log them in
-    user.loggedin = true;
-    loggedInUsers++;
+    user.logged_in = true;
+    logged_in_users++;
     
     console.log("User "+user.name+" is logged in.");
     
-    if (roundInProgress == false && loggedInUsers >= MIN_PLAYERS_TO_START){
+    if (round_in_progress == false && logged_in_users >= backend.constants.MIN_PLAYERS_TO_START){
       //Start the next round in 5 seconds
       setTimeout(startNextRound, 5000);
     }
+
+    //Publish the login event
+    session.publish("com.google.guesswho.logins", [], {
+      players_needed: backend.constants.MIN_PLAYERS_TO_START - logged_in_users
+    });
 
     return user;
   }
@@ -107,13 +123,13 @@ function main(session) {
   // Register new devices
   //
   var register = function() {
-    users[uidCounter] = {
-      id: uidCounter,
-      name: "guest" + uidCounter,
+    users[uid_counter] = {
+      id: uid_counter,
+      name: "guest" + uid_counter,
       loggedin: false,
       score: 0
     };
-    return uidCounter++;
+    return uid_counter++;
   }
 
   // Change user names
@@ -135,7 +151,7 @@ function main(session) {
   //
   var submitGuess = function(args, kwargs, details) {
     // Check to make sure the round is still going
-    if(roundInProgress == false){
+    if(round_in_progress == false){
       return;
     }
     new_guess = kwargs;
@@ -157,8 +173,8 @@ function main(session) {
   //
   var onLogout = function(args, kwargs, details){
     var user = lookup(args[0]);
-    user.loggedin = false;
-    loggedInUsers--;
+    user.logged_in = false;
+    logged_in_users--;
     var logout_msg = 'User '+user.name+' has logged out!';
     console.log(logout_msg);
     return logout_msg;
@@ -167,34 +183,33 @@ function main(session) {
   // Begin the round
   //
   var startNextRound = function(){
-
-    round = (round+1)%guessList.length;
-    roundInProgress = true;
-    //TODO:
-    //Start the timer
+    // Increment (wrapping if at end of list) the round
+    round = (round+1)%guess_list.length;
+    round_in_progress = true;
     
     //Pick the keyword for the round, save the id
-    correct_id = guessList[round].id;
-    //var keyword = guessList[round].keyword;
+    correct_id = guess_list[round].id;
+    
     //Generate the answers
     //Slice the list of keywords before and after the current keyword, then glue them together and shuffle the result
-    var potentialAnswers = shuffle(guessList.slice(0,round).concat(guessList.slice(round + 1,guessList.length)));    
-    answers = []; // clear out the answers
-    //Add the correct answer
-    //answers[0] = {keyword: keyword, correct: true};
-    //Add incorrect answers
+    //guess_list.splice(round, 1);
+    var potentialAnswers = shuffle(guess_list.slice(0,round).concat(guess_list.slice(round + 1,guess_list.length)));    
+    
+    answers = []; // clear out the answers    
 
-    answers[0] = guessList[round]; //load in the correct answer
+    answers[0] = guess_list[round]; //load in the correct answer
     // then concatenate a slice of 7 more possible answers to the array
-    answers = answers.concat(potentialAnswers.slice(1, NUMBER_OF_ANSWERS+1));
-    // for(var i = 1; i < NUMBER_OF_ANSWERS; i++){
-    //   answers[i] = {keyword: potentialAnswers[i], correct: false};
-    // }
+    answers = answers.concat(potentialAnswers.slice(1, backend.constants.NUMBER_OF_ANSWERS+1));
+
+    //TODO:
+    //Start the timer
+    var now = new Date();
+    var round_end = now.getTime() + backend.constants.ROUND_DURATION;
 
     //Publish the roundStart event (everyone wants to know)
     session.publish("com.google.guesswho.roundStart", [], {
       round: round,
-      duration: ROUND_DURATION,
+      round_end: round_end,
       answers: answers
     });
 
@@ -202,13 +217,13 @@ function main(session) {
   // When the display has finished animating the image
   //
   var onRoundOver = function(args, kwargs, details){
-    roundInProgress = false;
+    round_in_progress = false;
     //TODO:
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display
     //session.publish('com.google.guesswho.roundResult', [], {});
 
-    if (roundInProgress == false && loggedInUsers >= MIN_PLAYERS_TO_START){
+    if (round_in_progress == false && logged_in_users >= backend.constants.MIN_PLAYERS_TO_START){
       //Start the next round in 5 seconds
       setTimeout(startNextRound, 5000);
     }

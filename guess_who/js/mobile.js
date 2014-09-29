@@ -26,8 +26,20 @@ connection.onopen = function(session, details) {
 
 };
 
-var my = {id: null, name: "", score: 0}
+// fired when connection was lost (or could not be established)
+//
+connection.onclose = function(reason, details) {
 
+   console.log("Connection lost: " + reason);
+
+}
+
+// Mobile.js variables
+var my = {id: null, name: "", score: 0}
+var input_body = $('#demo_body');
+var round_in_progress = false;
+
+// Utility functions
 function set_name(new_name){
    new_name = new_name || my.name // default to my name if no new name is passed
    // update my name
@@ -49,13 +61,10 @@ function main(session) {
       );
    })
 
-   //EXAMPLE EJS
-   //var html = new EJS({url: 'templates/temp.ejs'}).render(data);
-   //EXAMPLE EJS
-
    //Check to see if the device already has a user id
-   //Note: needs to be localStorage for mobile testing
+      //Note: needs to use localStorage for 'real' mobile testing
    my.id = sessionStorage.getItem("id");
+
    //Log in to the server (and get auto-registered if no uid is present)
    session.call("com.google.guesswho.login", [my.id]).then(
       function(user) {
@@ -63,24 +72,25 @@ function main(session) {
          my = user;
          sessionStorage.setItem("id", my.id);
          // Display the username
-         set_name(my.name);
+         set_name(my.name);    
+
          console.log("user is logged in with uid " + my.id + ", and their score is " + my.score);
       },
       session.log
    );
 
-   // Attach delegated handlers for the multiple choice buttons
+   // Wire up multiple choice buttons
    //
-   var input_body = $('#demo_body');
    input_body.on('click', '.answer', function(event){
+      
       // Disable all buttons in the input_body
       clicked_button = $(event.target);
       input_body.children('.answer').prop('disabled', true);
       clicked_button.addClass('selected'); // add a border to indicate that the button has been clicked
+
       // Submit the answer to the server
       session.call("com.google.guesswho.submit", [], {id: my.id, val: clicked_button.val()}).then(
          function(success){
-            // answer was retrieved, success is probably a boolean
             clicked_button.addClass(success.correct? 'correct' : 'incorrect');
             console.log("Score for this round was ", success.score);
          },
@@ -95,9 +105,11 @@ function main(session) {
    // Wire up the name container for setting new user names
    $(".name_container").on('click', function(event){
       var container = $(event.target);
+      
       // Render the edit_widget with the name
       var edit_widget = new EJS({url: 'templates/edit_name.ejs'}).render(my);
       container.html(edit_widget);
+
       // Wire up the edit_widget
       $("#submit_name").on('click', function(event){
          var widget = $(event.target);
@@ -117,10 +129,25 @@ function main(session) {
    // Handle round start
    var onRoundStart = function(args, kwargs, details){
       //Populate the input body with buttons
-      //var input_body = $('#demo_body');
-      buttons = new EJS({url: 'templates/buttons.ejs'}).render(kwargs);
-      input_body.html(buttons);      
+      //
+      var buttons = new EJS({url: 'templates/buttons.ejs'}).render(kwargs);
+      input_body.html(buttons); 
+
+      round_in_progress = true;     
+
+      var now = new Date();
+      console.log((kwargs.round_end - now.getTime())/1000, "seconds left in round");
    }
+
+   // Handle new login event
+   var onLogins = function(args, kwargs, details){
+      // Update the waiting message
+      var waiting = new EJS({url: 'templates/waiting.ejs'}).render(kwargs);
+      if (!round_in_progress){
+         input_body.html(waiting);
+      }
+   }
+
    // Subscribe to Round Start event
    //
    session.subscribe("com.google.guesswho.roundStart", onRoundStart).then(
@@ -128,15 +155,16 @@ function main(session) {
          console.log("subscribed to roundStart");
       }, session.log
    );
+
+   // Subscribe to Logins event
+   //
+   session.subscribe("com.google.guesswho.logins", onLogins).then(
+      function(success){
+         console.log("subscribed to logins");
+      }, session.log
+   );
 }
 
-// fired when connection was lost (or could not be established)
-//
-connection.onclose = function(reason, details) {
-
-   console.log("Connection lost: " + reason);
-
-}
 
 // now actually open the connection
 //
