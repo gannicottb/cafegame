@@ -142,10 +142,6 @@ function main(session){
           round: round
         });
         $("#person_name").html("ANSWER: " + keyword);
-        //
-        //wait for command from backend to show next image
-        //
-        //setTimeout(loadGoogleImage, 3000);
       }
     }
 
@@ -183,7 +179,7 @@ function main(session){
       round = kwargs.round;
       keyword = kwargs.answers[0].keyword;
       // Use this to determine how many intervals to display
-      var duration = kwargs.duration;
+      var round_end = kwargs.round_end;
       // Load the image to start the round
       loadGoogleImage(keyword)
     }

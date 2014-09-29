@@ -38,6 +38,7 @@ connection.onclose = function(reason, details) {
 var my = {id: null, name: "", score: 0}
 var input_body = $('#input_body');
 var round_in_progress = false;
+var timer_interval = null;
 
 // Utility functions
 function set_name(new_name){
@@ -47,6 +48,28 @@ function set_name(new_name){
    // render my name in the name container
    var name_tag = new EJS({url: 'templates/user_name.ejs'}).render(my);
    $(".name_container").html(name_tag);
+}
+
+function set_timer(timeout){
+   // Render the timer
+   var now = new Date();
+   var time_left = (timeout - now.getTime())/1000
+   var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: time_left});
+   $('.timer').html(timer);
+
+   // Update the timer every second until the timer runs out
+   timer_interval = setInterval(function(){
+      var now = new Date();
+      var time_left = (timeout - now.getTime())/1000
+      if(time_left <= 0){
+         clearInterval(timer_interval);
+         timer_interval = null;
+         time_left = 0;
+      }
+      var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: time_left});
+      $('.timer').html(timer);
+   }, 1000);
+
 }
 
 function main(session) {
@@ -66,6 +89,7 @@ function main(session) {
    my.id = sessionStorage.getItem("id");
 
    //Log in to the server (and get auto-registered if no uid is present)
+   //
    session.call("com.google.guesswho.login", [my.id]).then(
       function(user) {
          // Store the user object returned from the server  
@@ -78,6 +102,10 @@ function main(session) {
       },
       session.log
    );
+
+   //
+   // CLICK HANDLERS
+   //
 
    // Wire up multiple choice buttons
    //
@@ -109,6 +137,7 @@ function main(session) {
       // Render the edit_widget with the name
       var edit_widget = new EJS({url: 'templates/edit_name.ejs'}).render(my);
       container.html(edit_widget);
+      container.find('input').prop('autofocus', true);
 
       // Wire up the edit_widget
       $("#submit_name").on('click', function(event){
@@ -126,6 +155,10 @@ function main(session) {
       })
    })
 
+   //
+   // SUBSCRIPTIONS
+   //
+
    // Handle round start
    var onRoundStart = function(args, kwargs, details){
       //Populate the input body with buttons
@@ -135,8 +168,7 @@ function main(session) {
 
       round_in_progress = true;     
 
-      var now = new Date();
-      console.log((kwargs.round_end - now.getTime())/1000, "seconds left in round");
+      set_timer(kwargs.round_end);
    }
 
    // Handle new login event

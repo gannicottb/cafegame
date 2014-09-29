@@ -17,6 +17,13 @@ hr{
 	font-size: large;
 }
 
+#submit_name {
+	height: 40px;
+	width: 40px;
+	background-color: silver;
+	font-size: medium;
+}
+
 .center {
 	margin-left: auto;
     margin-right: auto;
