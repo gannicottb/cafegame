@@ -27,7 +27,7 @@ var connection = new autobahn.Connection({
 
 window.backend = window.backend || {
   constants: {
-    NUMBER_OF_ANSWERS: 8,
+    NUMBER_OF_ANSWERS: 4,
     ROUND_DURATION: 20000, // in ms
     MIN_PLAYERS_TO_START: 2 //set to 2 for DEBUG
   }
@@ -198,8 +198,8 @@ function main(session) {
     answers = []; // clear out the answers    
 
     answers[0] = guess_list[round]; //load in the correct answer
-    // then concatenate a slice of 7 more possible answers to the array
-    answers = answers.concat(potentialAnswers.slice(1, backend.constants.NUMBER_OF_ANSWERS+1));
+    // then concatenate a slice of more possible answers to the array
+    answers = answers.concat(potentialAnswers.slice(0, backend.constants.NUMBER_OF_ANSWERS - 1));
 
     //TODO:
     //Start the timer

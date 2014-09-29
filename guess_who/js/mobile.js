@@ -36,7 +36,7 @@ connection.onclose = function(reason, details) {
 
 // Mobile.js variables
 var my = {id: null, name: "", score: 0}
-var input_body = $('#demo_body');
+var input_body = $('#input_body');
 var round_in_progress = false;
 
 // Utility functions
