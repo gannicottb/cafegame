@@ -123,7 +123,9 @@ function main(session) {
       clicked_button.addClass('selected'); // add a border to indicate that the button has been clicked
 
       // Submit the answer to the server
-      session.call("com.google.guesswho.submit", [], {id: my.id, val: clicked_button.val()}).then(
+
+      session.call("com.google.guesswho.submit", [], 
+         {id: my.id, val: clicked_button.val(), time: new Date().getTime()}).then(
          function(success){
             clicked_button.addClass(success.correct? 'correct' : 'incorrect');
             console.log("Score for this round was ", success.score);

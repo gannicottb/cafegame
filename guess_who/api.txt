@@ -47,6 +47,6 @@ com.google.guesswho.login
 	return Object user{}
 
 com.google.guesswho.submit
-	submitGuess(kwargs{string id, int val})
+	submitGuess(kwargs{string id, int val, int time})
 	return {bool correct, int score}
 

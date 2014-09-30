@@ -169,10 +169,8 @@ function main(session) {
 
     //TODO:
     // Determine their score, add it to their total
-    var d = new Date();
-    var time_left = Math.floor((round_end - d.getTime())/1000);
-    var score = time_left
-   
+    var time_left = Math.floor((round_end - kwargs.time)); // in ms
+    var score = (time_left/backend.constants.ROUND_DURATION) * 5 // Max score is 5.   
 
     // Publish the new guess event
     session.publish('com.google.guesswho.newGuess', {
