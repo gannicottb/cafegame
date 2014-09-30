@@ -46,8 +46,8 @@ function set_name(new_name){
    // update my name
    my.name = new_name;
    // render my name in the name container
-   var name_tag = new EJS({url: 'templates/user_name.ejs'}).render(my);
-   $(".name_container").html(name_tag);
+   //
+   $(".name_container").html(new EJS({url: 'templates/user_name.ejs'}).render(my));
 }
 
 function set_timer(timeout){
@@ -128,6 +128,12 @@ function main(session) {
          {id: my.id, val: clicked_button.val(), time: new Date().getTime()}).then(
          function(success){
             clicked_button.addClass(success.correct? 'correct' : 'incorrect');
+            // TODO: Display the score in some nice way
+
+            // Update the score
+            my.score += success.score
+            $(".name_container").html(new EJS({url: 'templates/user_name.ejs'}).render(my));
+
             console.log("Score for this round was ", success.score);
          },
          function(error){
@@ -194,6 +200,7 @@ function main(session) {
 
       // Clear the timer
       set_timer(0);
+
    }
 
    // Handle new login event

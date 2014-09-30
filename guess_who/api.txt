@@ -35,6 +35,10 @@ com.google.guesswho.newGuess
 	a new guess has been processed and published
 	{int id, int round, bool correct}
 
+com.google.guesswho.gameState (Potential)
+	backend -> all
+	how many players are needed, when the next round will begin, number of seconds left in the round
+
 RPC
 -----------------------------------------------
 

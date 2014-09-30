@@ -170,7 +170,7 @@ function main(session) {
     
     if(correct){ // If you didn't get it right, you get a score of 0 (maybe some very small number just for playing?)
       var time_left = Math.floor((round_end - kwargs.time)); // in ms
-      score = (time_left/backend.constants.ROUND_DURATION) * 5 // Max score is 5.   
+      score = ((time_left/backend.constants.ROUND_DURATION) * 5) | 0; // Max score is 5.   
     }
 
     user.score += score;
