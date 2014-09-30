@@ -114,8 +114,13 @@ function main(session) {
     }
 
     //Publish the login event
-    session.publish("com.google.guesswho.logins", [], {
-      players_needed: backend.constants.MIN_PLAYERS_TO_START - logged_in_users
+    // session.publish("com.google.guesswho.logins", [], {
+    //   players_needed: backend.constants.MIN_PLAYERS_TO_START - logged_in_users
+    // });
+
+    session.publish("com.google.guesswho.newLogin", [], {
+      players_needed: backend.constants.MIN_PLAYERS_TO_START - logged_in_users,
+      new_player: {id: user.id, name: user.name}
     });
 
     return user;
@@ -208,6 +213,8 @@ function main(session) {
     var now = new Date();
     var round_end = now.getTime() + backend.constants.ROUND_DURATION;
 
+    setTimeout(onRoundOver, backend.constants.ROUND_DURATION);
+
     //Publish the roundStart event (everyone wants to know)
     session.publish("com.google.guesswho.roundStart", answers, {
       correct_answer: correct_answer,
@@ -216,14 +223,15 @@ function main(session) {
     });
 
   }
-  // When the display has finished animating the image
+  // When the round timeout is reached
   //
   var onRoundOver = function(args, kwargs, details){
     round_in_progress = false;
     //TODO:
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display
-    //session.publish('com.google.guesswho.roundResult', [], {});
+    
+    session.publish('com.google.guesswho.roundEnd', [round], {});
 
     if (round_in_progress == false && logged_in_users >= backend.constants.MIN_PLAYERS_TO_START){
       //Start the next round in 5 seconds
@@ -237,9 +245,21 @@ function main(session) {
 
   // REGISTER RPC
   //
-  session.register('com.google.guesswho.submit', submitGuess);
-  session.register('com.google.guesswho.login', login);
-  session.register('com.google.guesswho.changename', changeName);
+  session.register('com.google.guesswho.submit', submitGuess).then(
+      function(success){
+         console.log("subscribed to ", success.topic);
+      }, session.log
+  );
+  session.register('com.google.guesswho.login', login).then(
+      function(success){
+         console.log("subscribed to ", success.topic);
+      }, session.log
+   );
+  session.register('com.google.guesswho.changename', changeName).then(
+      function(success){
+         console.log("subscribed to ", success.topic);
+      }, session.log
+   );
 
 }
 

@@ -8,38 +8,43 @@ prefix for all events and RPC = "com.google.guesswho"
 	payload
 
 Events (for pub/sub)
--------------------
+----------------------------------------------
 
-com.google.guesswho.logins
+com.google.guesswho.logins (RENAMED TO com.google.guesswho.newlogin)
 	backend -> all
 	a new user has logged in
 	{int players_needed}
+
+com.google.guesswho.roundEnd (NEW)
+	backend -> all
+	the round timer is over
+	args[int round], {?}
+
+com.google.guesswho.roundResult (DEPRECATED - USE com.google.guesswho.roundEnd)
+	backend -> large_right
+	The backend informs the large display about the result of the round
+	{}
+
+com.google.guesswho.roundOver (DEPRECATED - USE com.google.guesswho.roundEnd)
+	large_left -> all
+	the image is done pixelating
+	{int round}
 
 com.google.guesswho.roundStart
 	backend -> all
 	the round should start
 	answers[{int id, string keyword},...], {correct_answer{int id, string keyword}, int round, int round_end}
 
-com.google.guesswho.roundResult 
-	backend -> large_right
-	The backend informs the large display about the result of the round
-	{}
-
-com.google.guesswho.roundOver
-	large_left -> all
-	the image is done pixelating
-	{int round}
-
-com.google.guesswho.logout
+com.google.guesswho.logout 
 	mobile -> all
 	the mobile user has closed the window (or maybe they have just been idle for too long)
 	{string id}
 
 com.google.guesswho.onguess
-	possibly deprecated
+	id, round, correct
 
 RPC
----
+-----------------------------------------------
 
 com.google.guesswho.login
 	login(args[string id])
@@ -50,5 +55,18 @@ com.google.guesswho.submit
 	return {bool correct, int score}
 
 com.google.guesswho.changename
+	changeName(string id, string name)
+	return user{}
 
 
+
+Guess submission should be a publish topic, actually.
+Nope, there should be an RPC call for guessing, and an event for new guesses (for the large display)
+
+Round end and round result should be merged together -> roundOver should have a result payload
+Which really means that the display should not be in charge of when the round is over.
+The backend should notify all clients when the round is over, and if the large display isn't quuuuite done, it should skip to the end.
+
+Login needs to be RPC, and the backend should publish the login event if successful
+What does the large-right need to know about new users?
+uid, uname

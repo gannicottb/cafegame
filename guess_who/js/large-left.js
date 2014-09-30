@@ -137,9 +137,9 @@ function main(session){
         console.log("Round Over! Show Answer: XXXX");
         
         // Publish roundOver event (backend wants to know)        
-        session.publish("com.google.guesswho.roundOver", [], {
-          round: round
-        });
+        // session.publish("com.google.guesswho.roundOver", [], {
+        //   round: round
+        // });
         $("#person_name").html("ANSWER: " + keyword);
       }
     }
@@ -186,11 +186,27 @@ function main(session){
       loadGoogleImage();
     }
 
+    var onRoundEnd = function(args, kwargs, details){
+      //Assuming that the message isn't outdated
+      if(args[0] === round){
+        //Skip to the end of the animation
+        showAnswer();
+      }
+    }
     //
     // SUBSCRIPTIONS
     //
 
-    session.subscribe("com.google.guesswho.roundStart", onRoundStart);  
+    session.subscribe("com.google.guesswho.roundStart", onRoundStart).then(
+      function(success){
+         console.log("subscribed to ", success.topic);
+      }, session.log
+   );  
+    session.subscribe("com.google.guesswho.roundEnd", onRoundEnd).then(
+      function(success){
+         console.log("subscribed to ", success.topic);
+      }, session.log
+   ); 
 }
 
 // now actually open the connection

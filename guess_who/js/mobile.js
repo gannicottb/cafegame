@@ -53,6 +53,9 @@ function set_name(new_name){
 function set_timer(timeout){
    var timeLeft = function(timeout){
       var now = new Date();
+      // if we set a timer with a negative or zero time, simply set it to now
+      if (timeout <= 0) timeout = now.getTime();
+      // that way, timeLeft returns 0s instead of a huge negative number
       return Math.floor((timeout - now.getTime())/1000);      
    }
    var renderTimer = function(time_left){      
@@ -64,16 +67,12 @@ function set_timer(timeout){
 
    // Update the timer every second until the timer runs out
    timer_interval = setInterval(function(){
-      // var now = new Date();
-      // var time_left = (timeout - now.getTime())/1000
       var time_left = timeLeft(timeout);
       if(time_left <= 0){
          clearInterval(timer_interval);
          timer_interval = null;
          time_left = 0;
       }
-      // var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: time_left});
-      // $('.timer').html(timer);
       renderTimer(time_left);
    }, 1000);
 
@@ -169,13 +168,28 @@ function main(session) {
    // Handle round start
    var onRoundStart = function(args, kwargs, details){
       //Populate the input body with buttons
-      //
       var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: args});
       input_body.html(buttons); 
 
       round_in_progress = true;     
 
       set_timer(kwargs.round_end);
+   }
+
+   var onRoundEnd = function(args, kwargs, details){        
+      round_in_progress = true;
+
+      //Populate the input body with only the correct button
+      var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: args});
+      input_body.html(buttons);
+
+      // Disable the button and color it appropriately
+      var answer = input_body.find('.answer:first');
+      answer.prop('disabled', true);
+      answer.addClass('correct');
+
+      // Clear the timer
+      set_timer(0);
    }
 
    // Handle new login event
@@ -191,15 +205,23 @@ function main(session) {
    //
    session.subscribe("com.google.guesswho.roundStart", onRoundStart).then(
       function(success){
-         console.log("subscribed to roundStart");
+         console.log("subscribed to ", success.topic);
       }, session.log
    );
 
+   // Subscribe to Round End event
+   //
+    session.subscribe("com.google.guesswho.roundEnd", onRoundEnd).then(
+      function(success){
+         console.log("subscribed to ", success.topic);
+      }, session.log
+   );   
+
    // Subscribe to Logins event
    //
-   session.subscribe("com.google.guesswho.logins", onLogins).then(
+   session.subscribe("com.google.guesswho.newLogin", onLogins).then(
       function(success){
-         console.log("subscribed to logins");
+         console.log("subscribed to ", success.topic);
       }, session.log
    );
 }
