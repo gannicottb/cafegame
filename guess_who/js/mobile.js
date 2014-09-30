@@ -149,7 +149,7 @@ function main(session) {
       $("#submit_name").on('click', function(event){
          var widget = $(event.target);
          console.log('submit_name clicked');
-         session.call("com.google.guesswho.changename", [my.id, $("#edit_name").val()]).then(
+         session.call("com.google.guesswho.changeName", [my.id, $("#edit_name").val()]).then(
             function(new_name){
                console.log(new_name);
                set_name(new_name);

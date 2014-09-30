@@ -71,16 +71,16 @@ function main(session) {
   // SUBSCRIPTIONS
   //
 
-  var onGuess = function(args, kwargs, details){
+  var onNewGuess = function(args, kwargs, details){
       new_guess = kwargs;
       // And then add the new_guess to the screen
   }
 
-  session.subscribe("com.google.guesswho.onguess", onGuess).then(
+  session.subscribe("com.google.guesswho.newGuess", onNewGuess).then(
       function(success){
          console.log("subscribed to ", success.topic);
       }, session.log
-   );
+  );
 }
 
 // now actually open the connection

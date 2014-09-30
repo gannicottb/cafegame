@@ -1,4 +1,4 @@
-API
+API - 0.1
 
 prefix for all events and RPC = "com.google.guesswho"
 
@@ -37,36 +37,26 @@ com.google.guesswho.roundStart
 
 com.google.guesswho.logout 
 	mobile -> all
-	the mobile user has closed the window (or maybe they have just been idle for too long)
+	the mobile user has closed the window 
 	{string id}
 
-com.google.guesswho.onguess
-	id, round, correct
+com.google.guesswho.onguess (RENAMED TO com.google.guesswho.newGuess)
+	backend -> large_right
+	a new guess has been processed and published
+	{int id, int round, bool correct}
 
 RPC
 -----------------------------------------------
 
+com.google.guesswho.changename (RENAMED TO com.google.guesswho.changeName)
+	changeName(string id, string name)
+	return user{}
+
 com.google.guesswho.login
 	login(args[string id])
-	return user
+	return user{}
 
 com.google.guesswho.submit
 	submitGuess(kwargs{string id, int val})
 	return {bool correct, int score}
 
-com.google.guesswho.changename
-	changeName(string id, string name)
-	return user{}
-
-
-
-Guess submission should be a publish topic, actually.
-Nope, there should be an RPC call for guessing, and an event for new guesses (for the large display)
-
-Round end and round result should be merged together -> roundOver should have a result payload
-Which really means that the display should not be in charge of when the round is over.
-The backend should notify all clients when the round is over, and if the large display isn't quuuuite done, it should skip to the end.
-
-Login needs to be RPC, and the backend should publish the login event if successful
-What does the large-right need to know about new users?
-uid, uname

@@ -166,12 +166,21 @@ function main(session) {
 
     verify(user);
 
+    var correct = (new_guess.val === correct_id);
+
     //TODO:
     // Determine their score, add it to their total
     // return the score for that guess
 
+    // Publish the new guess event
+    session.publish('com.google.guesswho.newGuess', {
+      round: round,
+      id: user.id,
+      correct: correct
+    })
+
     //DEBUG:
-    result = {correct: new_guess.val == correct_id, score: 1}
+    result = {correct: correct, score: 1}
     return result;
   }
 
@@ -255,7 +264,7 @@ function main(session) {
          console.log("subscribed to ", success.topic);
       }, session.log
    );
-  session.register('com.google.guesswho.changename', changeName).then(
+  session.register('com.google.guesswho.changeName', changeName).then(
       function(success){
          console.log("subscribed to ", success.topic);
       }, session.log
