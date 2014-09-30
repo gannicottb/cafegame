@@ -18,7 +18,7 @@ com.google.guesswho.logins (RENAMED TO com.google.guesswho.newlogin)
 com.google.guesswho.roundEnd (NEW)
 	backend -> all
 	the round timer is over
-	args[int round], {?}
+	args[], {int round, []answers}
 
 com.google.guesswho.roundResult (DEPRECATED - USE com.google.guesswho.roundEnd)
 	backend -> large_right

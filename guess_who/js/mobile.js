@@ -105,8 +105,8 @@ function main(session) {
          set_name(my.name);    
 
          console.log("user is logged in with uid " + my.id + ", and their score is " + my.score);
-      },
-      session.log
+         //retry = false;
+      }
    );
 
    //
@@ -177,10 +177,12 @@ function main(session) {
    }
 
    var onRoundEnd = function(args, kwargs, details){        
-      round_in_progress = true;
+      round_in_progress = false;
+
+      if(kwargs.round != round) return;
 
       //Populate the input body with only the correct button
-      var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: args});
+      var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: kwargs.answers});
       input_body.html(buttons);
 
       // Disable the button and color it appropriately

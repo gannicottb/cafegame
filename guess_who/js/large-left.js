@@ -188,10 +188,10 @@ function main(session){
 
     var onRoundEnd = function(args, kwargs, details){
       //Assuming that the message isn't outdated
-      if(args[0] === round){
-        //Skip to the end of the animation
-        showAnswer();
-      }
+      if(kwargs.round != round) return;
+      //Skip to the end of the animation
+      showAnswer();
+      
     }
     //
     // SUBSCRIPTIONS

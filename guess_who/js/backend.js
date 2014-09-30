@@ -43,7 +43,8 @@ window.backend = window.backend || {
 
 };
 
-var correct_id = null;
+// var correct_id = null;
+var correct_answer = null;
 var uid_counter = 0;
 var users = [];
 var logged_in_users = 0;
@@ -157,7 +158,7 @@ function main(session) {
   //
   var submitGuess = function(args, kwargs, details) {
     // Check to make sure the round is still going
-    if(round_in_progress == false){
+    if(round_in_progress === false){
       return;
     }
     new_guess = kwargs;
@@ -166,7 +167,7 @@ function main(session) {
 
     verify(user);
 
-    var correct = (new_guess.val === correct_id);
+    var correct = (new_guess.val === correct_answer.id);
 
     //TODO:
     // Determine their score, add it to their total
@@ -179,7 +180,7 @@ function main(session) {
       correct: correct
     })
 
-    //DEBUG:
+    //DEBUG: set score to 1 always
     result = {correct: correct, score: 1}
     return result;
   }
@@ -189,7 +190,8 @@ function main(session) {
   var onLogout = function(args, kwargs, details){
     var user = lookup(args[0]);
     user.logged_in = false;
-    logged_in_users--;
+    // Just in case something weird has happened. We can't have a negative number of users.
+    if(logged_in_users > 0) logged_in_users--;
     var logout_msg = 'User '+user.name+' has logged out!';
     console.log(logout_msg);
     return logout_msg;
@@ -216,6 +218,7 @@ function main(session) {
     answers[0] = correct_answer; 
     // concatenate a slice of more possible answers to the array
     answers = answers.concat(potentialAnswers.slice(0, backend.constants.NUMBER_OF_ANSWERS - 1));
+    // randomize the answer choices
     shuffle(answers);
 
     //Set the alarm
@@ -240,9 +243,9 @@ function main(session) {
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display
     
-    session.publish('com.google.guesswho.roundEnd', [round], {});
+    session.publish('com.google.guesswho.roundEnd', [], {round: round, answers: correct_answer});
 
-    if (round_in_progress == false && logged_in_users >= backend.constants.MIN_PLAYERS_TO_START){
+    if (round_in_progress === false && logged_in_users >= backend.constants.MIN_PLAYERS_TO_START){
       //Start the next round in 5 seconds
       setTimeout(startNextRound, 5000);
     }
@@ -256,17 +259,17 @@ function main(session) {
   //
   session.register('com.google.guesswho.submit', submitGuess).then(
       function(success){
-         console.log("subscribed to ", success.topic);
+         console.log("registered ", success.procedure);
       }, session.log
   );
   session.register('com.google.guesswho.login', login).then(
       function(success){
-         console.log("subscribed to ", success.topic);
+         console.log("registered ", success.procedure);
       }, session.log
    );
   session.register('com.google.guesswho.changeName', changeName).then(
       function(success){
-         console.log("subscribed to ", success.topic);
+         console.log("registered ", success.procedure);
       }, session.log
    );
 
