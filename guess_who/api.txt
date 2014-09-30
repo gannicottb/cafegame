@@ -18,7 +18,7 @@ com.google.guesswho.logins
 com.google.guesswho.roundStart
 	backend -> all
 	the round should start
-	{int correct_id, int round, int round_end}
+	answers[{int id, string keyword},...], {correct_answer{int id, string keyword}, int round, int round_end}
 
 com.google.guesswho.roundResult 
 	backend -> large_right

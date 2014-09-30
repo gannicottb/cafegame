@@ -170,7 +170,7 @@ function main(session) {
    var onRoundStart = function(args, kwargs, details){
       //Populate the input body with buttons
       //
-      var buttons = new EJS({url: 'templates/buttons.ejs'}).render(kwargs);
+      var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: args});
       input_body.html(buttons); 
 
       round_in_progress = true;     
@@ -181,7 +181,7 @@ function main(session) {
    // Handle new login event
    var onLogins = function(args, kwargs, details){
       // Update the waiting message
-      var waiting = new EJS({url: 'templates/waiting.ejs'}).render({answers: args}); 
+      var waiting = new EJS({url: 'templates/waiting.ejs'}).render(kwargs); 
       if (!round_in_progress){
          input_body.html(waiting);
       }

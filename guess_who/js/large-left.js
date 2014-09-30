@@ -79,7 +79,7 @@ function hndlr(response) {
   return false;
 }
 
-function loadGoogleImage(keyword) {
+function loadGoogleImage() {
   console.log("loading " + keyword);
   var idx = googleAppKey.currentIndex;
   var appkey = googleAppKey.items[idx];
@@ -126,7 +126,7 @@ function main(session){
         }
       };
 
-
+      nextPixelate();
 
       intervalId = setInterval(nextPixelate, 5000)
 
@@ -175,16 +175,15 @@ function main(session){
 
     var onRoundStart = function(args, kwargs, details){
       // Update what round we're on
-      round = kwargs.round;
-      for(var answer in args){
-        if (answer.id == kwargs.correct_id)
-          keyword = answer.keyword
-      }
+      round = kwargs.round;      
+      // Get the keyword for this round
+      keyword = kwargs.correct_answer.keyword;      
       
       // TODO: Use this to determine how many intervals to display
       var round_end = kwargs.round_end;
+
       // Load the image to start the round
-      loadGoogleImage(keyword)
+      loadGoogleImage();
     }
 
     //

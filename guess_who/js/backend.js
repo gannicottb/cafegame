@@ -189,7 +189,8 @@ function main(session) {
     round_in_progress = true;
     
     //Pick the keyword for the round, save the id
-    correct_id = guess_list[round].id;
+    //correct_id = guess_list[round].id;
+    correct_answer = guess_list[round];
     
     //Generate the answers
     //
@@ -198,7 +199,7 @@ function main(session) {
     // clear out the answers  
     answers = [];   
     //load in the correct answer
-    answers[0] = guess_list[round]; 
+    answers[0] = correct_answer; 
     // concatenate a slice of more possible answers to the array
     answers = answers.concat(potentialAnswers.slice(0, backend.constants.NUMBER_OF_ANSWERS - 1));
     shuffle(answers);
@@ -209,7 +210,7 @@ function main(session) {
 
     //Publish the roundStart event (everyone wants to know)
     session.publish("com.google.guesswho.roundStart", answers, {
-      correct_id: correct_id,
+      correct_answer: correct_answer,
       round: round,
       round_end: round_end
     });
