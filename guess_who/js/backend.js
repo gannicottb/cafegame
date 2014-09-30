@@ -52,6 +52,7 @@ var guess_list = [];
 var round_in_progress = false;
 var answers = [];
 var round = -1; // keep track of what round we're on
+var round_end = 0;
 
 function verify(user){
   if(user == undefined || user == null || user.logged_in == false){
@@ -114,11 +115,6 @@ function main(session) {
       setTimeout(startNextRound, 5000);
     }
 
-    //Publish the login event
-    // session.publish("com.google.guesswho.logins", [], {
-    //   players_needed: backend.constants.MIN_PLAYERS_TO_START - logged_in_users
-    // });
-
     session.publish("com.google.guesswho.newLogin", [], {
       players_needed: backend.constants.MIN_PLAYERS_TO_START - logged_in_users,
       new_player: {id: user.id, name: user.name}
@@ -161,17 +157,22 @@ function main(session) {
     if(round_in_progress === false){
       return;
     }
+
     new_guess = kwargs;
 
     var user = lookup(new_guess.id);
 
     verify(user);
 
+    // Is the guess correct?
     var correct = (new_guess.val === correct_answer.id);
 
     //TODO:
     // Determine their score, add it to their total
-    // return the score for that guess
+    var d = new Date();
+    var time_left = Math.floor((round_end - d.getTime())/1000);
+    var score = time_left
+   
 
     // Publish the new guess event
     session.publish('com.google.guesswho.newGuess', {
@@ -180,8 +181,8 @@ function main(session) {
       correct: correct
     })
 
-    //DEBUG: set score to 1 always
-    result = {correct: correct, score: 1}
+    // Return their score for the round
+    result = {correct: correct, score: score}
     return result;
   }
 
@@ -223,7 +224,7 @@ function main(session) {
 
     //Set the alarm
     var now = new Date();
-    var round_end = now.getTime() + backend.constants.ROUND_DURATION;
+    round_end = now.getTime() + backend.constants.ROUND_DURATION;
 
     setTimeout(onRoundOver, backend.constants.ROUND_DURATION);
 
@@ -239,6 +240,7 @@ function main(session) {
   //
   var onRoundOver = function(args, kwargs, details){
     round_in_progress = false;
+    round_end = 0;
     //TODO:
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display

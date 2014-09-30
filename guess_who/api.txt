@@ -1,4 +1,4 @@
-API - 0.1
+API - 0.2
 
 prefix for all events and RPC = "com.google.guesswho"
 
@@ -10,37 +10,27 @@ prefix for all events and RPC = "com.google.guesswho"
 Events (for pub/sub)
 ----------------------------------------------
 
-com.google.guesswho.logins (RENAMED TO com.google.guesswho.newlogin)
+com.google.guesswho.newLogin
 	backend -> all
 	a new user has logged in
 	{int players_needed}
 
-com.google.guesswho.roundEnd (NEW)
+com.google.guesswho.roundEnd
 	backend -> all
 	the round timer is over
-	args[], {int round, []answers}
-
-com.google.guesswho.roundResult (DEPRECATED - USE com.google.guesswho.roundEnd)
-	backend -> large_right
-	The backend informs the large display about the result of the round
-	{}
-
-com.google.guesswho.roundOver (DEPRECATED - USE com.google.guesswho.roundEnd)
-	large_left -> all
-	the image is done pixelating
-	{int round}
+	{int round, answers[]}
 
 com.google.guesswho.roundStart
 	backend -> all
 	the round should start
-	answers[{int id, string keyword},...], {correct_answer{int id, string keyword}, int round, int round_end}
+	Array answers[{int id, string keyword},...], {Object correct_answer{int id, string keyword}, int round, int round_end}
 
 com.google.guesswho.logout 
 	mobile -> all
 	the mobile user has closed the window 
 	{string id}
 
-com.google.guesswho.onguess (RENAMED TO com.google.guesswho.newGuess)
+com.google.guesswho.newGuess
 	backend -> large_right
 	a new guess has been processed and published
 	{int id, int round, bool correct}
@@ -48,13 +38,13 @@ com.google.guesswho.onguess (RENAMED TO com.google.guesswho.newGuess)
 RPC
 -----------------------------------------------
 
-com.google.guesswho.changename (RENAMED TO com.google.guesswho.changeName)
+com.google.guesswho.changeName
 	changeName(string id, string name)
-	return user{}
+	return Object user{}
 
 com.google.guesswho.login
 	login(args[string id])
-	return user{}
+	return Object user{}
 
 com.google.guesswho.submit
 	submitGuess(kwargs{string id, int val})
