@@ -1,0 +1,54 @@
+API
+
+prefix for all events and RPC = "com.google.guesswho"
+
+<event or rpc URI>
+	publisher -> subscribers
+	description
+	payload
+
+Events (for pub/sub)
+-------------------
+
+com.google.guesswho.logins
+	backend -> all
+	a new user has logged in
+	{int players_needed}
+
+com.google.guesswho.roundStart
+	backend -> all
+	the round should start
+	{int correct_id, int round, int round_end}
+
+com.google.guesswho.roundResult 
+	backend -> large_right
+	The backend informs the large display about the result of the round
+	{}
+
+com.google.guesswho.roundOver
+	large_left -> all
+	the image is done pixelating
+	{int round}
+
+com.google.guesswho.logout
+	mobile -> all
+	the mobile user has closed the window (or maybe they have just been idle for too long)
+	{string id}
+
+com.google.guesswho.onguess
+	possibly deprecated
+
+RPC
+---
+
+com.google.guesswho.login
+	login(args[string id])
+	return user
+
+com.google.guesswho.submit
+	submitGuess(kwargs{string id, int val})
+	return {bool correct, int score}
+
+com.google.guesswho.changename
+
+

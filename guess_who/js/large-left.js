@@ -38,8 +38,6 @@ var googleAppKey = {
   currentIndex: 0
 }
 
-//guesslist = [];
-
 var round = 0;
 var keyword = "";
 
@@ -111,25 +109,26 @@ function main(session){
     img.onload = guessStart; //so load the image to start everything
     img.onerror = imgError;
 
-    /// some image, we are not struck with CORS restrictions as we
-    /// do not use pixel buffer to pixelate, so any image will do
-    // img.src = 'http://i.imgur.com/w1yg6qo.jpg';
-
-
     var intervalId;
 
     function guessStart() {
       $("#person_name").html("NAME THAT PERSON!");
       console.log("Guess start");
+      
       var changeLeft = 4;
-      intervalId = setInterval(function() {
+
+      var nextPixelate = function() {
         if (changeLeft === 0) {
           showAnswer();
         } else {
           pixelate(2 * (6 - changeLeft));
           changeLeft -= 1;
         }
-      }, 5000)
+      };
+
+
+
+      intervalId = setInterval(nextPixelate, 5000)
 
       function showAnswer() {
         clearInterval(intervalId);
@@ -177,17 +176,23 @@ function main(session){
     var onRoundStart = function(args, kwargs, details){
       // Update what round we're on
       round = kwargs.round;
-      keyword = kwargs.answers[0].keyword;
-      // Use this to determine how many intervals to display
+      for(var answer in args){
+        if (answer.id == kwargs.correct_id)
+          keyword = answer.keyword
+      }
+      
+      // TODO: Use this to determine how many intervals to display
       var round_end = kwargs.round_end;
       // Load the image to start the round
       loadGoogleImage(keyword)
     }
 
-    session.subscribe("com.google.guesswho.roundStart", onRoundStart);
-  
-}
+    //
+    // SUBSCRIPTIONS
+    //
 
+    session.subscribe("com.google.guesswho.roundStart", onRoundStart);  
+}
 
 // now actually open the connection
 //

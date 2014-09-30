@@ -51,23 +51,30 @@ function set_name(new_name){
 }
 
 function set_timer(timeout){
-   // Render the timer
-   var now = new Date();
-   var time_left = (timeout - now.getTime())/1000
-   var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: time_left});
-   $('.timer').html(timer);
+   var timeLeft = function(timeout){
+      var now = new Date();
+      return Math.floor((timeout - now.getTime())/1000);      
+   }
+   var renderTimer = function(time_left){      
+      var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: time_left});
+      $('.timer').html(timer);
+   }
+
+   renderTimer(timeLeft(timeout));
 
    // Update the timer every second until the timer runs out
    timer_interval = setInterval(function(){
-      var now = new Date();
-      var time_left = (timeout - now.getTime())/1000
+      // var now = new Date();
+      // var time_left = (timeout - now.getTime())/1000
+      var time_left = timeLeft(timeout);
       if(time_left <= 0){
          clearInterval(timer_interval);
          timer_interval = null;
          time_left = 0;
       }
-      var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: time_left});
-      $('.timer').html(timer);
+      // var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: time_left});
+      // $('.timer').html(timer);
+      renderTimer(time_left);
    }, 1000);
 
 }
@@ -174,7 +181,7 @@ function main(session) {
    // Handle new login event
    var onLogins = function(args, kwargs, details){
       // Update the waiting message
-      var waiting = new EJS({url: 'templates/waiting.ejs'}).render(kwargs);
+      var waiting = new EJS({url: 'templates/waiting.ejs'}).render({answers: args}); 
       if (!round_in_progress){
          input_body.html(waiting);
       }

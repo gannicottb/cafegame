@@ -87,7 +87,8 @@ function main(session) {
     guess_list = shuffle(guess_list);
   }, 'text');
 
-  //RPC procedures
+  //
+  //RPC 
   //
 
   // User login
@@ -191,26 +192,26 @@ function main(session) {
     correct_id = guess_list[round].id;
     
     //Generate the answers
+    //
     //Slice the list of keywords before and after the current keyword, then glue them together and shuffle the result
-    //guess_list.splice(round, 1);
     var potentialAnswers = shuffle(guess_list.slice(0,round).concat(guess_list.slice(round + 1,guess_list.length)));    
-    
-    answers = []; // clear out the answers    
-
-    answers[0] = guess_list[round]; //load in the correct answer
-    // then concatenate a slice of more possible answers to the array
+    // clear out the answers  
+    answers = [];   
+    //load in the correct answer
+    answers[0] = guess_list[round]; 
+    // concatenate a slice of more possible answers to the array
     answers = answers.concat(potentialAnswers.slice(0, backend.constants.NUMBER_OF_ANSWERS - 1));
+    shuffle(answers);
 
-    //TODO:
-    //Start the timer
+    //Set the alarm
     var now = new Date();
     var round_end = now.getTime() + backend.constants.ROUND_DURATION;
 
     //Publish the roundStart event (everyone wants to know)
-    session.publish("com.google.guesswho.roundStart", [], {
+    session.publish("com.google.guesswho.roundStart", answers, {
+      correct_id: correct_id,
       round: round,
-      round_end: round_end,
-      answers: answers
+      round_end: round_end
     });
 
   }
