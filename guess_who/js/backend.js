@@ -158,22 +158,25 @@ function main(session) {
       return;
     }
 
-    new_guess = kwargs;
-
-    var user = lookup(new_guess.id);
+    var user = lookup(kwargs.id);
 
     verify(user);
 
     // Is the guess correct?
-    var correct = (new_guess.val === correct_answer.id);
+    var correct = (Number(kwargs.val) === correct_answer.id);
 
-    //TODO:
     // Determine their score, add it to their total
-    var time_left = Math.floor((round_end - kwargs.time)); // in ms
-    var score = (time_left/backend.constants.ROUND_DURATION) * 5 // Max score is 5.   
+    var score = 0;
+    
+    if(correct){ // If you didn't get it right, you get a score of 0 (maybe some very small number just for playing?)
+      var time_left = Math.floor((round_end - kwargs.time)); // in ms
+      score = (time_left/backend.constants.ROUND_DURATION) * 5 // Max score is 5.   
+    }
+
+    user.score += score;
 
     // Publish the new guess event
-    session.publish('com.google.guesswho.newGuess', {
+    session.publish('com.google.guesswho.newGuess', [], {
       round: round,
       id: user.id,
       correct: correct
@@ -202,6 +205,8 @@ function main(session) {
     // Increment (wrapping if at end of list) the round
     round = (round+1)%guess_list.length;
     round_in_progress = true;
+
+    $('#round_number').html($('#round_number').html()+" "+round);
     
     //Pick the keyword for the round, save the id
     //correct_id = guess_list[round].id;
@@ -221,8 +226,7 @@ function main(session) {
     shuffle(answers);
 
     //Set the alarm
-    var now = new Date();
-    round_end = now.getTime() + backend.constants.ROUND_DURATION;
+    round_end = new Date().getTime() + backend.constants.ROUND_DURATION;
 
     setTimeout(onRoundOver, backend.constants.ROUND_DURATION);
 
@@ -243,7 +247,7 @@ function main(session) {
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display
     
-    session.publish('com.google.guesswho.roundEnd', [], {round: round, answers: correct_answer});
+    session.publish('com.google.guesswho.roundEnd',[], {round: round, answers: correct_answer});
 
     if (round_in_progress === false && logged_in_users >= backend.constants.MIN_PLAYERS_TO_START){
       //Start the next round in 5 seconds
