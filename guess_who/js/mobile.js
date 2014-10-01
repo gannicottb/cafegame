@@ -37,7 +37,7 @@ connection.onclose = function(reason, details) {
 var MOBILE = (function () {
 
    //Private variables
-   var user = {id: null, name: "", score: 0}
+   var user = {id: null, name: "", score: 0};
    var input_body = $('#input_body');
    var round_in_progress = false;
    var timer_interval = null;
