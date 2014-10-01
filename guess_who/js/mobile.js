@@ -10,6 +10,7 @@ var Mobile = (function() {
     score: 0
   };
   var input_body = $('#input_body');
+  var name_container = $('.name_container');
   var round_in_progress = false;
   var timer_interval = null;
 
@@ -24,7 +25,7 @@ var Mobile = (function() {
     user.name = new_name;
     // render user name in the name container
     //
-    $(".name_container").html(new EJS({
+    name_container.html(new EJS({
       url: 'templates/user_name.ejs'
     }).render(user));
   };
@@ -110,6 +111,64 @@ var Mobile = (function() {
     }
   };
 
+  answerClick = function(event){
+    // Disable all buttons in the input_body
+      clicked_button = $(event.target);
+      input_body.children('.answer').prop('disabled', true);
+      clicked_button.addClass('selected'); // add a border to indicate that the button has been clicked
+
+      // Submit the answer to the server
+      session.call("com.google.guesswho.submit", [], {
+        id: user.id,
+        val: clicked_button.val(),
+        time: new Date().getTime()
+      }).then(
+        function(success) {
+          clicked_button.addClass(success.correct ? 'correct' : 'incorrect');
+          // TODO: Display the score in some nice way
+
+          // Update the score
+          user.score += success.score
+          name_container.html(new EJS({
+            url: 'templates/user_name.ejs'
+          }).render(user));
+
+          console.log("Score for this round was ", success.score);
+        },
+        function(error) {
+          console.log("Submit guess failed", error)
+          //retry
+        }
+      );
+  };
+
+  changeNameClick = function(event) {
+    var container = $(event.target);
+
+    // Render the edit_widget with the name
+    var edit_widget = new EJS({
+      url: 'templates/edit_name.ejs'
+    }).render(user);
+    container.html(edit_widget);
+    container.find('input').prop('autofocus', true);
+
+    // Wire up the edit_widget
+    $("#submit_name").on('click', function(event) {
+      var widget = $(event.target);
+      console.log('submit_name clicked');
+      session.call("com.google.guesswho.changeName", [user.id, $("#edit_name").val()]).then(
+        function(new_name) {
+          console.log(new_name);
+          setName(new_name);
+        },
+        function(error) {
+          console.log("Change name failed", error)
+          setName(); //re render with cached name
+        }
+      )
+    })
+  };
+
   // Register and subscribe, plus anything else that needs to be done at startup
   main = function(autobahn_session) {
 
@@ -132,88 +191,30 @@ var Mobile = (function() {
     //Log in to the server (and get auto-registered if no uid is present)
     //
     session.call("com.google.guesswho.login", [user.id]).then(
-      function(user) {
+      function(success) {
         // Store the user object returned from the server  
-        user = user;
+        user = success;
         sessionStorage.setItem("id", user.id);
         // Display the username
         setName(user.name);
 
-        console.log("user is logged in with uid " + user.id + ", and their score is " + user.score);
+        console.log("user is logged in with uid " + Number(user.id) + ", and their score is " + user.score);
         //retry = false;
+      },
+      function(error) {
+        console.log("login failed", error);
       }
     );
 
-    //
-    // CLICK HANDLERS
-    //
+    // CLICK HANDLERS //
 
     // Wire up multiple choice buttons
-    //
-    input_body.on('click', '.answer', function(event) {
-
-      // Disable all buttons in the input_body
-      clicked_button = $(event.target);
-      input_body.children('.answer').prop('disabled', true);
-      clicked_button.addClass('selected'); // add a border to indicate that the button has been clicked
-
-      // Submit the answer to the server
-
-      session.call("com.google.guesswho.submit", [], {
-        id: user.id,
-        val: clicked_button.val(),
-        time: new Date().getTime()
-      }).then(
-        function(success) {
-          clicked_button.addClass(success.correct ? 'correct' : 'incorrect');
-          // TODO: Display the score in some nice way
-
-          // Update the score
-          user.score += success.score
-          $(".name_container").html(new EJS({
-            url: 'templates/user_name.ejs'
-          }).render(user));
-
-          console.log("Score for this round was ", success.score);
-        },
-        function(error) {
-          session.log();
-          //retry
-        }
-      );
-
-    });
+    input_body.on('click', '.answer', answerClick);
 
     // Wire up the name container for setting new user names
-    $(".name_container").on('click', function(event) {
-      var container = $(event.target);
+    name_container.on('click', changeNameClick);
 
-      // Render the edit_widget with the name
-      var edit_widget = new EJS({
-        url: 'templates/edit_name.ejs'
-      }).render(user);
-      container.html(edit_widget);
-      container.find('input').prop('autofocus', true);
-
-      // Wire up the edit_widget
-      $("#submit_name").on('click', function(event) {
-        var widget = $(event.target);
-        console.log('submit_name clicked');
-        session.call("com.google.guesswho.changeName", [user.id, $("#edit_name").val()]).then(
-          function(new_name) {
-            console.log(new_name);
-            setName(new_name);
-          },
-          function(error) {
-            setName(); //re render with cached name
-          }
-        )
-      })
-    })
-
-    //
-    // SUBSCRIPTIONS
-    //
+    // SUBSCRIPTIONS //
 
     // Subscribe to Round Start event
     //
