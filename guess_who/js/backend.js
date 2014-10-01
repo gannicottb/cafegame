@@ -1,4 +1,4 @@
-var BACKEND = (function () {
+var Backend = (function () {
 
   //Private variables
   //
@@ -6,6 +6,7 @@ var BACKEND = (function () {
   //Autobahn Stuff  
   var wsuri = null;
   var connection;
+  var session;
 
   //Constants
   var NUMBER_OF_ANSWERS= 4;
@@ -29,7 +30,7 @@ var BACKEND = (function () {
         //the user isn't registered or logged in
         //throw an error of some kind
         throw new autobahn.Error('com.google.guesswho.error', ["User isn't registered or logged in"], user);
-      }
+    }
   };
 
   lookup = function(uid){
@@ -39,8 +40,8 @@ var BACKEND = (function () {
   //+ Jonas Raoni Soares Silva
   //@ http://jsfromhell.com/array/shuffle [v1.0]
   shuffle = function(o){ //v1.0
-      for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
-      return o;
+    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
   };  
 
   // Register new devices
@@ -177,34 +178,38 @@ var BACKEND = (function () {
 
   // Login new and existing users
   login = function(args, kwargs, details) {    
-      var uid = args[0];//it's a string
-      console.log("uid "+args[0]+" logging in"); 
-      // Register if the user passes in a null id
-      if (uid == null || uid == undefined){
-        uid = register();
-      }
-      // Grab the user from the "database"
-      var user = lookup(uid);    
-      // Log them in
-      user.logged_in = true;
-      logged_in_users++;
-      
-      console.log("User "+user.name+" is logged in.");
-      
-      if (round_in_progress == false && logged_in_users >= MIN_PLAYERS_TO_START){
-        //Start the next round in 5 seconds
-        setTimeout(startNextRound, 5000);
-      }
+    var uid = args[0];//it's a string
+    console.log("uid "+args[0]+" logging in");
 
-      session.publish("com.google.guesswho.newLogin", [], {
-        players_needed: MIN_PLAYERS_TO_START - logged_in_users,
-        new_player: {id: user.id, name: user.name}
-      });
+    // Register if the user passes in a null id
+    if (uid == null || uid == undefined){
+      uid = register();
+    }
 
-      return user;
+    // Grab the user from the "database"
+    var user = lookup(uid);    
+    // Log them in
+    user.logged_in = true;
+    logged_in_users++;      
+    
+    if (round_in_progress == false && logged_in_users >= MIN_PLAYERS_TO_START){
+      //Start the next round in 5 seconds
+      setTimeout(startNextRound, 5000);
+    }
+
+    session.publish("com.google.guesswho.newLogin", [], {
+      players_needed: MIN_PLAYERS_TO_START - logged_in_users,
+      new_player: {id: user.id, name: user.name}
+    });
+
+    console.log("User "+user.name+" is logged in.");
+
+    return user;
   };
 
-  main = function(session){
+  main = function(autobahn_session){
+
+    session = autobahn_session;
     //Get the curated list of people
     //
     $.get('http://localhost:8080/guesslist.txt', function(myContentFile) {
@@ -231,7 +236,7 @@ var BACKEND = (function () {
            console.log("registered ", success.procedure);
         }, session.log
     );
-    session.register('com.google.guesswho.login', BACKEND.login).then(
+    session.register('com.google.guesswho.login', login).then(
         function(success){
            console.log("registered ", success.procedure);
         }, session.log
@@ -268,7 +273,7 @@ var BACKEND = (function () {
         }
       }
 
-      connection = new autobahn.Connection({
+      var connection = new autobahn.Connection({
         url: wsuri,
         realm: 'realm1'
       });
@@ -289,4 +294,4 @@ var BACKEND = (function () {
   };
 })();
 
-BACKEND.init();
+Backend.init();
