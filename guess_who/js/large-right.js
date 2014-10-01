@@ -24,9 +24,12 @@ connection.onopen = function(session, details) {
   main(session);
 };
 
+var loggedInUsers = [];
 
 function main(session) {
 
+  //Display all logged in users
+  //showAllLoggedInUsers();
 
   var printGuesses = function(guesses) {
     //Create a list item
@@ -67,13 +70,50 @@ function main(session) {
 
   }
 
+  var showAllLoggedInUsers = function(){
+
+    session.call("com.google.guesswho.getLoggedInUsers").then(
+       function(success){
+        
+          loggedInUsers=success;
+        
+          console.log("length of loggedInUsers ="+loggedInUsers.length);    
+
+          if(loggedInUsers.length > 0)
+          {
+            var guesses_body = $('#guesses_body');
+            var btns = new EJS({url: 'templates/guesses_display.ejs'}).render({loggedInUsers: loggedInUsers});
+            guesses_body.html(btns);
+          }            
+       },
+       function(error){
+          session.log();
+          //retry
+       }
+
+    ); 
+  }
   //
   // SUBSCRIPTIONS
   //
+  var onRoundStart = function(args, kwargs, details){
+     
+      showAllLoggedInUsers();
+  }
 
   var onNewGuess = function(args, kwargs, details){
+      
       new_guess = kwargs;
+
       // And then add the new_guess to the screen
+
+      var player_icon = $('[data-id="'+kwargs.id+'"]');
+
+      if(kwargs.correct)
+        player_icon.attr('src','img/green_led.png');
+      else
+        player_icon.attr('src','img/red_led.png');
+
   }
 
   session.subscribe("com.google.guesswho.newGuess", onNewGuess).then(
@@ -81,6 +121,14 @@ function main(session) {
          console.log("subscribed to ", success.topic);
       }, session.log
   );
+  // Subscribe to Round Start event
+ 
+  session.subscribe("com.google.guesswho.roundStart", onRoundStart).then(
+    function(success){
+       console.log("subscribed to ", success.topic);
+    }, session.log
+  );
+
 }
 
 // now actually open the connection

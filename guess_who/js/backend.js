@@ -232,6 +232,20 @@ var Backend = (function() {
       guess_list = shuffle(guess_list);
     }, 'text');
 
+    //Get logged in users
+    //Return array of logged in user objects from users
+    var getLoggedInUsers = function(args, kwargs, details){
+      
+      console.log("Entered getLoggedinUsers RPC");
+      
+      //Filter logged in users from all users
+      var loggedInUsers = users.filter(function(check){
+        return check.logged_in === true;
+      });
+
+      return loggedInUsers;
+    }
+
 
     // Subscriptions
     session.subscribe('com.google.guesswho.logout', onLogout);
@@ -254,6 +268,11 @@ var Backend = (function() {
         console.log("registered ", success.procedure);
       }, session.log
     );
+    session.register('com.google.guesswho.getLoggedInUsers', getLoggedInUsers).then(
+        function(success){
+           console.log("registered ", success.procedure);
+        }, session.log
+     );    
   };
 
   return {
