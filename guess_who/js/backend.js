@@ -3,17 +3,13 @@ var Backend = (function () {
   //Private variables
   //
 
-  //Autobahn Stuff  
-  var wsuri = null;
-  var connection;
-  var session;
-
   //Constants
   var NUMBER_OF_ANSWERS= 4;
   var ROUND_DURATION= 20000; // in ms
   var MIN_PLAYERS_TO_START= 2; //set to 2 for DEBUG
-
-  //Other
+ 
+  // Members
+  var session;
   var correct_answer = null;
   var uid_counter = 0;
   var users = [];
@@ -250,8 +246,8 @@ var Backend = (function () {
 
   return {
 
-    init: function(){
-      wsuri = null;
+    connect: function(){
+      var wsuri = null;
 
       // include AutobahnJS
       try {
@@ -294,4 +290,4 @@ var Backend = (function () {
   };
 })();
 
-Backend.init();
+Backend.connect();

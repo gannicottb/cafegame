@@ -1,42 +1,9 @@
-// the URL of the WAMP Router (Crossbar.io)
-//
-var wsuri;
-if (document.location.origin == "file://") {
-   wsuri = "ws://127.0.0.1:8080/ws";
-
-} else {
-   wsuri = (document.location.protocol === "http:" ? "ws:" : "wss:") + "//" +
-      document.location.host + "/ws";
-}
-
-
-// the WAMP connection to the Router
-//
-var connection = new autobahn.Connection({
-   url: wsuri,
-   realm: "realm1"
-});
-
-
-// fired when connection is established and session attached
-//
-connection.onopen = function(session, details) {
-
-   MOBILE.main(session);
-
-};
-
-// fired when connection was lost (or could not be established)
-//
-connection.onclose = function(reason, details) {
-
-   console.log("Connection lost: " + reason);
-
-}
-
-var MOBILE = (function () {
+var Mobile = (function () {
 
    //Private variables
+   //
+
+   var session;
    var user = {id: null, name: "", score: 0};
    var input_body = $('#input_body');
    var round_in_progress = false;
@@ -44,6 +11,9 @@ var MOBILE = (function () {
 
 
    // Private functions
+   //
+
+   //set the value of the name container
    setName = function(new_name){
       new_name = new_name || user.name // default to user name if no new name is passed
       // update user name
@@ -53,6 +23,7 @@ var MOBILE = (function () {
       $(".name_container").html(new EJS({url: 'templates/user_name.ejs'}).render(user));
    };
 
+   //set the value of the timer
    setTimer = function(timeout){
       var timeLeft = function(timeout){
          var now = new Date();
@@ -80,7 +51,7 @@ var MOBILE = (function () {
       }, 1000);
    };
 
-    // Handle round start
+   // Handle round start
    onRoundStart = function(args, kwargs, details){
       //Populate the input body with buttons
       var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: args});
@@ -91,6 +62,7 @@ var MOBILE = (function () {
       setTimer(kwargs.round_end);
    };
 
+   // Handle round end
    onRoundEnd = function(args, kwargs, details){        
       round_in_progress = false;
 
@@ -116,13 +88,12 @@ var MOBILE = (function () {
       if (!round_in_progress){
          input_body.html(waiting);
       }
-   }
+   };
 
+   // Register and subscribe, plus anything else that needs to be done at startup
+   main = function(autobahn_session) {
 
-  return {
-
-    // A public function utilizing privates
-   main: function(session) {
+      session = autobahn_session;
 
       // Auto logout if the user leaves the page (notify the backend)
       //
@@ -216,7 +187,6 @@ var MOBILE = (function () {
       //
       // SUBSCRIPTIONS
       //
-
      
       // Subscribe to Round Start event
       //
@@ -241,74 +211,52 @@ var MOBILE = (function () {
             console.log("subscribed to ", success.topic);
          }, session.log
       );
+   };
+
+  return {
+
+   // A public function utilizing privates
+   connect: function(){
+      // the URL of the WAMP Router (Crossbar.io)
+      //
+      var wsuri = null;
+      if (document.location.origin == "file://") {
+         wsuri = "ws://127.0.0.1:8080/ws";
+
+      } else {
+         wsuri = (document.location.protocol === "http:" ? "ws:" : "wss:") + "//" +
+            document.location.host + "/ws";
+      }
+
+      // the WAMP connection to the Router
+      //
+      var connection = new autobahn.Connection({
+         url: wsuri,
+         realm: "realm1"
+      });
+
+      // fired when connection is established and session attached
+      //
+      connection.onopen = function(session, details) {
+
+         main(session);
+
+      };
+
+      // fired when connection was lost (or could not be established)
+      //
+      connection.onclose = function(reason, details) {
+
+         console.log("Connection lost: " + reason);
+
+      }
+
+      // now actually open the connection
+      //
+      connection.open();
    }
   };
 
 })();
 
-// now actually open the connection
-//
-connection.open();
-
-//---------------------------------------------
-
-// var MOBILE = window.MOBILE || {
-
-//    // Mobile.js variables
-//    user: {id: null, name: "", score: 0},
-//    input_body: $('#input_body'),
-//    round_in_progress: false,
-//    timer_interval: null
-// };
-
-
-
-// Mobile.js variables
-// var user = {id: null, name: "", score: 0}
-// var input_body = $('#input_body');
-// var round_in_progress = false;
-// var timer_interval = null;
-
-// Utility functions
-// function setName(new_name){
-
-//    new_name = new_name || user.name // default to user name if no new name is passed
-//    // update user name
-//    user.name = new_name;
-//    // render user name in the name container
-//    //
-//    $(".name_container").html(new EJS({url: 'templates/user_name.ejs'}).render(user));
-// }
-
-// function setTimer(timeout){
-//    var timeLeft = function(timeout){
-//       var now = new Date();
-//       // if we set a timer with a negative or zero time, simply set it to now
-//       if (timeout <= 0) timeout = now.getTime();
-//       // that way, timeLeft returns 0s instead of a huge negative number
-//       return Math.floor((timeout - now.getTime())/1000);      
-//    }
-//    var renderTimer = function(time_left){      
-//       var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: time_left});
-//       $('.timer').html(timer);
-//    }
-
-//    renderTimer(timeLeft(timeout));
-
-//    // Update the timer every second until the timer runs out
-//    timer_interval = setInterval(function(){
-//       var time_left = timeLeft(timeout);
-//       if(time_left <= 0){
-//          clearInterval(timer_interval);
-//          timer_interval = null;
-//          time_left = 0;
-//       }
-//       renderTimer(time_left);
-//    }, 1000);
-
-// }
-
-
-
-
-
+Mobile.connect();
