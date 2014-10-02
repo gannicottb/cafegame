@@ -282,6 +282,10 @@ var Mobile = (function() {
       // now actually open the connection
       //
       connection.open();
+    },
+
+  user: function(){
+      return user;
     }
   };
 

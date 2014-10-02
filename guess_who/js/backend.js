@@ -40,6 +40,40 @@ var Backend = (function() {
     return o;
   };
 
+  // Login new and existing users
+  var login = function(args, kwargs, details) {
+    var uid = args[0]; //it's a string
+    console.log("uid " + args[0] + " logging in");
+
+    // Register if the user passes in a null id
+    if (uid == null || uid == undefined) {
+      uid = register();
+    }
+
+    // Grab the user from the "database"
+    var user = lookup(uid);
+    // Log them in
+    user.logged_in = true;
+    logged_in_users++;
+
+    if (round_in_progress == false && logged_in_users >= MIN_PLAYERS_TO_START) {
+      //Start the next round in 5 seconds
+      setTimeout(startNextRound, 5000);
+    }
+
+    session.publish("com.google.guesswho.newLogin", [], {
+      players_needed: (logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0),
+      new_player: {
+        id: user.id,
+        name: user.name
+      }
+    });
+
+    console.log("User " + user.name + " is logged in.");
+
+    return user;
+  };
+
   // Register new devices
   //
   var register = function() {
@@ -106,6 +140,8 @@ var Backend = (function() {
     }
     return result;
   };
+
+
 
   // When a user logs out
   //
@@ -178,39 +214,7 @@ var Backend = (function() {
     }
   };
 
-  // Login new and existing users
-  var login = function(args, kwargs, details) {
-    var uid = args[0]; //it's a string
-    console.log("uid " + args[0] + " logging in");
-
-    // Register if the user passes in a null id
-    if (uid == null || uid == undefined) {
-      uid = register();
-    }
-
-    // Grab the user from the "database"
-    var user = lookup(uid);
-    // Log them in
-    user.logged_in = true;
-    logged_in_users++;
-
-    if (round_in_progress == false && logged_in_users >= MIN_PLAYERS_TO_START) {
-      //Start the next round in 5 seconds
-      setTimeout(startNextRound, 5000);
-    }
-
-    session.publish("com.google.guesswho.newLogin", [], {
-      players_needed: (logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0),
-      new_player: {
-        id: user.id,
-        name: user.name
-      }
-    });
-
-    console.log("User " + user.name + " is logged in.");
-
-    return user;
-  };
+  
 
   var main = function(autobahn_session) {
 
