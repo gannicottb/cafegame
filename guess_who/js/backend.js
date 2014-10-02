@@ -200,7 +200,7 @@ var Backend = (function() {
     }
 
     session.publish("com.google.guesswho.newLogin", [], {
-      players_needed: MIN_PLAYERS_TO_START - logged_in_users,
+      players_needed: (logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0),
       new_player: {
         id: user.id,
         name: user.name
