@@ -96,19 +96,23 @@ function main(session) {
   //
   // SUBSCRIPTIONS
   //
+  //Load gray colored icons to represent players in the round
   var onRoundStart = function(args, kwargs, details){
      
       showAllLoggedInUsers();
   }
 
+  //Change icon color based on guess correctness
   var onNewGuess = function(args, kwargs, details){
       
       new_guess = kwargs;
 
       // And then add the new_guess to the screen
 
+      //Get icon representing the user
       var player_icon = $('[data-id="'+kwargs.id+'"]');
 
+      //Change icon to green if guess is right, red if guess is wrong
       if(kwargs.correct)
         player_icon.attr('src','img/green_led.png');
       else
@@ -116,6 +120,45 @@ function main(session) {
 
   }
 
+  //Remove icon representing logged out user
+  var onLogout = function(args, kwargs, details) {
+    
+    var user_iD = args[0];
+    
+    //Get icon representing the user
+    var player_icon = $('[data-id="'+user_id+'"]');
+
+    //Remove icon representing this user
+    player_icon.remove();
+
+  };
+
+  //Add new icon to represent logged in user
+  var onLogins = function(args, kwargs, details) {
+    
+    var user_id = kwargs.new_player.id;
+    
+    //Create a new user object that can be pushed into existed array of logged in users
+    var new_user = {
+      id: user_id,
+      name: user_name,
+      logged_in: true,
+      score: 0
+    };
+
+    loggedInUsers.push(new_user);
+
+    if(loggedInUsers.length > 0)
+    {
+      var guesses_body = $('#guesses_body');
+      var btns = new EJS({url: 'templates/guesses_display.ejs'}).render({loggedInUsers: loggedInUsers});
+      guesses_body.html(btns);
+    } */ 
+
+  };
+
+
+  // Subscribe to New Guess event
   session.subscribe("com.google.guesswho.newGuess", onNewGuess).then(
       function(success){
          console.log("subscribed to ", success.topic);
@@ -129,6 +172,19 @@ function main(session) {
     }, session.log
   );
 
+  // Subscribe to Logout event
+  session.subscribe('com.google.guesswho.logout', onLogout).then(
+    function(success){
+       console.log("subscribed to ", success.topic);
+    }, session.log
+  );
+
+  // Subscribe to Logins event
+  session.subscribe("com.google.guesswho.newLogin", onLogins).then(
+    function(success) {
+      console.log("subscribed to ", success.topic);
+    }, session.log
+  );
 }
 
 // now actually open the connection
