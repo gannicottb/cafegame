@@ -21,7 +21,7 @@ var Backend = (function() {
   var round_end = 0;
 
   //Private methods
-  verify = function(user) {
+  var verify = function(user) {
     if (user == undefined || user == null || user.logged_in == false) {
       //the user isn't registered or logged in
       //throw an error of some kind
@@ -29,20 +29,20 @@ var Backend = (function() {
     }
   };
 
-  lookup = function(uid) {
+  var lookup = function(uid) {
     return users[Number(uid)];
   };
 
   //+ Jonas Raoni Soares Silva
   //@ http://jsfromhell.com/array/shuffle [v1.0]
-  shuffle = function(o) { //v1.0
+  var shuffle = function(o) { //v1.0
     for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
     return o;
   };
 
   // Register new devices
   //
-  register = function() {
+  var register = function() {
     users[uid_counter] = {
       id: uid_counter,
       name: "guest" + uid_counter,
@@ -54,7 +54,7 @@ var Backend = (function() {
 
   // Change user names
   //
-  changeName = function(args, kwargs, details) {
+  var changeName = function(args, kwargs, details) {
     var user = lookup(args[0]);
     var new_name = args[1];
 
@@ -69,7 +69,7 @@ var Backend = (function() {
 
   // Handle guess submission
   //
-  submitGuess = function(args, kwargs, details) {
+  var submitGuess = function(args, kwargs, details) {
     // Check to make sure the round is still going
     if (round_in_progress === false) {
       return;
@@ -109,7 +109,7 @@ var Backend = (function() {
 
   // When a user logs out
   //
-  onLogout = function(args, kwargs, details) {
+  var onLogout = function(args, kwargs, details) {
     var user = lookup(args[0]);
     user.logged_in = false;
     // Just in case something weird has happened. We can't have a negative number of users.
@@ -121,7 +121,7 @@ var Backend = (function() {
 
   // Begin the round
   //
-  startNextRound = function() {
+  var startNextRound = function() {
     // Increment (wrapping if at end of list) the round
     round = (round + 1) % guess_list.length;
     round_in_progress = true;
@@ -160,7 +160,7 @@ var Backend = (function() {
 
   // When the round timeout is reached
   //
-  onRoundOver = function(args, kwargs, details) {
+  var onRoundOver = function(args, kwargs, details) {
     round_in_progress = false;
     round_end = 0;
     //TODO:
@@ -179,7 +179,7 @@ var Backend = (function() {
   };
 
   // Login new and existing users
-  login = function(args, kwargs, details) {
+  var login = function(args, kwargs, details) {
     var uid = args[0]; //it's a string
     console.log("uid " + args[0] + " logging in");
 
@@ -212,7 +212,7 @@ var Backend = (function() {
     return user;
   };
 
-  main = function(autobahn_session) {
+  var main = function(autobahn_session) {
 
     session = autobahn_session;
     //Get the curated list of people

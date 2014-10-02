@@ -19,7 +19,7 @@ var Mobile = (function() {
   //
 
   //set the value of the name container
-  setName = function(new_name) {
+  var setName = function(new_name) {
     new_name = new_name || user.name // default to user name if no new name is passed
     // update user name
     user.name = new_name;
@@ -31,7 +31,7 @@ var Mobile = (function() {
   };
 
   //set the value of the timer
-  setTimer = function(timeout) {
+  var setTimer = function(timeout) {
     var timeLeft = function(timeout) {
       var now = new Date();
       // if we set a timer with a negative or zero time, simply set it to now
@@ -63,7 +63,7 @@ var Mobile = (function() {
   };
 
   // Handle round start
-  onRoundStart = function(args, kwargs, details) {
+  var onRoundStart = function(args, kwargs, details) {
     //Populate the input body with buttons
     var buttons = new EJS({
       url: 'templates/buttons.ejs'
@@ -78,7 +78,7 @@ var Mobile = (function() {
   };
 
   // Handle round end
-  onRoundEnd = function(args, kwargs, details) {
+  var onRoundEnd = function(args, kwargs, details) {
     round_in_progress = false;
 
     if (kwargs.round != round) return;
@@ -101,7 +101,7 @@ var Mobile = (function() {
   };
 
   // Handle new login event
-  onLogins = function(args, kwargs, details) {
+  var onLogins = function(args, kwargs, details) {
     // Update the waiting message
     var waiting = new EJS({
       url: 'templates/waiting.ejs'
@@ -111,7 +111,7 @@ var Mobile = (function() {
     }
   };
 
-  answerClick = function(event){
+  var answerClick = function(event){
     // Disable all buttons in the input_body
       clicked_button = $(event.target);
       input_body.children('.answer').prop('disabled', true);
@@ -142,7 +142,7 @@ var Mobile = (function() {
       );
   };
 
-  changeNameClick = function(event) {
+  var changeNameClick = function(event) {
     var container = $(event.target);
 
     // Render the edit_widget with the name
@@ -170,7 +170,7 @@ var Mobile = (function() {
   };
 
   // Register and subscribe, plus anything else that needs to be done at startup
-  main = function(autobahn_session) {
+  var main = function(autobahn_session) {
 
     session = autobahn_session;
 
