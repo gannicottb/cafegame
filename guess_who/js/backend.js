@@ -19,6 +19,7 @@ var Backend = (function() {
   var answers = [];
   var round = -1; // keep track of what round we're on
   var round_end = 0;
+  var timer_interval = null;
 
   //Private methods
   verify = function(user) {
@@ -39,6 +40,38 @@ var Backend = (function() {
     for (var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
     return o;
   };
+
+  //set the value of the timer
+  setTimer = function(timeout) {
+    var timeLeft = function(timeout) {
+      var now = new Date();
+      // if we set a timer with a negative or zero time, simply set it to now
+      if (timeout <= 0) timeout = now.getTime();
+      // that way, timeLeft returns 0s instead of a huge negative number
+      return Math.floor((timeout - now.getTime()) / 1000);
+    }
+    var renderTimer = function(time_left) {
+      var timer = new EJS({
+        url: 'templates/timer.ejs'
+      }).render({
+        time_left: time_left
+      });
+      $('.timer').html(timer);
+    }
+
+    renderTimer(timeLeft(timeout));
+
+    // Update the timer every second until the timer runs out
+    timer_interval = setInterval(function() {
+      var time_left = timeLeft(timeout);
+      if (time_left <= 0) {
+        clearInterval(timer_interval);
+        timer_interval = null;
+        time_left = 0;
+      }
+      renderTimer(time_left);
+    }, 1000);
+  };  
 
   // Register new devices
   //
@@ -150,6 +183,9 @@ var Backend = (function() {
 
     setTimeout(onRoundOver, ROUND_DURATION);
 
+    //Display Timer
+    setTimer(round_end);
+
     //Publish the roundStart event (everyone wants to know)
     session.publish("com.google.guesswho.roundStart", answers, {
       correct_answer: correct_answer,
@@ -163,6 +199,10 @@ var Backend = (function() {
   onRoundOver = function(args, kwargs, details) {
     round_in_progress = false;
     round_end = 0;
+
+    // Clear the timer
+    setTimer(0);
+    
     //TODO:
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display
