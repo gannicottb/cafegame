@@ -126,7 +126,7 @@ var Backend = (function() {
     round = (round + 1) % guess_list.length;
     round_in_progress = true;
 
-    $('#round_number').html($('#round_number').html() + " " + round);
+    $('#round_number').html("Round" + round);
 
     //Pick the keyword for the round, save the id
     //correct_id = guess_list[round].id;

@@ -7,9 +7,23 @@ var Test = (function() {
  
   //Private functions
   //
-  main = function(autobahn_session){
+
+  var main = function(autobahn_session){
     session = autobahn_session;
     console.log('test connected on', session);
+
+    //login
+    //setName
+    //setTimer
+    //onRoundStart
+    //onRoundEnd
+    //onLogins
+    //answerClick
+    //changeNameClick
+
+    Qunit.test("");
+
+
   };
 
   return {
