@@ -95,7 +95,7 @@ function main(session) {
   }
   //
   // SUBSCRIPTIONS
-  //
+  
   //Load gray colored icons to represent players in the round
   var onRoundStart = function(args, kwargs, details){
      
@@ -123,7 +123,7 @@ function main(session) {
   //Remove icon representing logged out user
   var onLogout = function(args, kwargs, details) {
     
-    var user_iD = args[0];
+    var user_id = args[0];
     
     //Get icon representing the user
     var player_icon = $('[data-id="'+user_id+'"]');
@@ -136,24 +136,15 @@ function main(session) {
   //Add new icon to represent logged in user
   var onLogins = function(args, kwargs, details) {
     
-    var user_id = kwargs.new_player.id;
+    var new_player = kwargs.new_player;
+    var new_players = [];
+    new_players.push(new_player);
     
-    //Create a new user object that can be pushed into existed array of logged in users
-    var new_user = {
-      id: user_id,
-      name: user_name,
-      logged_in: true,
-      score: 0
-    };
+    var guesses_body = $('#guesses_body');
 
-    loggedInUsers.push(new_user);
+    var image = new EJS({url: 'templates/guesses_display.ejs'}).render({loggedInUsers: new_players});
 
-    if(loggedInUsers.length > 0)
-    {
-      var guesses_body = $('#guesses_body');
-      var btns = new EJS({url: 'templates/guesses_display.ejs'}).render({loggedInUsers: loggedInUsers});
-      guesses_body.html(btns);
-    } */ 
+    guesses_body.append(image);
 
   };
 
