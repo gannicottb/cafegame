@@ -4,21 +4,31 @@ var Backend = (function() {
   //
 
   //Constants
-  var NUMBER_OF_ANSWERS = 4;
-  var ROUND_DURATION = 20000; // in ms
-  var MIN_PLAYERS_TO_START = 2; //set to 2 for DEBUG
+  var NUMBER_OF_ANSWERS, ROUND_DURATION, MIN_PLAYERS_TO_START;
 
   // Members
   var session;
-  var correct_answer = null;
-  var uid_counter = 0;
-  var users = [];
-  var logged_in_users = 0;
-  var guess_list = [];
-  var round_in_progress = false;
-  var answers = [];
-  var round = -1; // keep track of what round we're on
-  var round_end = 0;
+  var correct_answer, guess_list, round_in_progress, answers;
+  var uid_counter, users, logged_in_users;
+  var round, round_end;
+
+  var init = function(){
+    NUMBER_OF_ANSWERS = 4;
+    ROUND_DURATION = 20000; // in ms
+    MIN_PLAYERS_TO_START = 2; //set to 2 for DEBUG
+
+    // Members
+    session;
+    correct_answer = null;
+    uid_counter = 0;
+    users = [];
+    logged_in_users = 0;
+    guess_list = [];
+    round_in_progress = false;
+    answers = [];
+    round = -1; // keep track of what round we're on
+    round_end = 0;
+  };
 
   //Get logged in users
   //Return array of logged in user objects from users
@@ -286,6 +296,9 @@ var Backend = (function() {
   return {
 
     connect: function() {
+
+      init(); 
+      
       var wsuri = null;
 
       // include AutobahnJS

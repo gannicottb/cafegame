@@ -3,20 +3,24 @@ var Mobile = (function() {
   //Private variables
   //
 
-  var session;
-  var user = {
-    id: null,
-    name: "",
-    score: 0
-  };
-  var input_body = $('#input_body');
-  var name_container = $('.name_container');
-  var round_in_progress = false;
-  var timer_interval = null;
-
+  var session, user;
+  var round_in_progress, timer_interval
+  var input_body, name_container;
 
   // Private functions
   //
+
+  var init = function(){
+    user = {
+      id: null,
+      name: "",
+      score: 0
+    };
+    input_body = $('#input_body');
+    name_container = $('.name_container');
+    round_in_progress = false;
+    timer_interval = null;
+  }
 
   //set the value of the name container
   var setName = function(new_name) {
@@ -251,6 +255,8 @@ var Mobile = (function() {
 
     // A public function utilizing privates
     connect: function() {
+
+      init();
       // the URL of the WAMP Router (Crossbar.io)
       //
       var wsuri = null;

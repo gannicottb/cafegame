@@ -4,40 +4,67 @@ var Test = (function() {
   //
 
   var session;
-  var correct_answer = {id: 1, keyword: "Mrs. Right"};
-  var wrong_answer = {id: 0, keyword: "Mr. Wrong"};
+  var correct_answer = {
+    id: 1,
+    keyword: "Mrs. Right"
+  };
+  var wrong_answer = {
+    id: 0,
+    keyword: "Mr. Wrong"
+  };
   var round_duration = 5;
- 
+
+  var pause = 50; // this value seems to work - latency is quite low
+
   //Private functions
   //
 
-  var setup = function(){
-    Backend.connect();
-    Mobile.connect();            
-  };
+  var defined = function(val) {
+    return val != null && val != undefined
+  }
 
-  var testRoundStart = function()  {
-    session.publish("com.google.guesswho.roundStart", [wrong_answer, correct_answer],
-     {
+  var publishRoundStart = function() {
+    session.publish("com.google.guesswho.roundStart", [wrong_answer, correct_answer], {
       correct_answer: correct_answer,
       round: 1,
       round_end: new Date().getTime() + (round_duration * 1000)
-    });        
-        
+    });
+
   };
 
-  var testRoundEnd = function() {
-    session.publish("com.google.guesswho.roundEnd",[], {
+  var publishRoundEnd = function() {
+    session.publish("com.google.guesswho.roundEnd", [], {
       round: 1,
       answers: correct_answer
     });
   };
 
+  var setupThen = function(doThis) {
+    sessionStorage.clear();
+    Backend.connect();
+    setTimeout(function() {
+      Mobile.connect();
+      setTimeout(function() {
+        doThis();
+      }, pause);
+    }, pause);
+  };
 
-  var main = function(autobahn_session){
+  var testRound = function(assertion) {
+    publishRoundStart();
+    setTimeout(function() {
+      //test your assertion
+      assertion();
+      publishRoundEnd();
+      setTimeout(function() {
+        QUnit.start();
+      }, pause);
+    }, pause);
+  };
+
+  var main = function(autobahn_session) {
     session = autobahn_session;
     console.log('test connected on', session);
-    sessionStorage.clear();
 
     //initial list of things to test in mobile.js
 
@@ -51,69 +78,41 @@ var Test = (function() {
     //answerClick
     //changeNameClick
 
-    QUnit.asyncTest("Mobile logged in and set its id", function(assert){
-      setup();     
-      
+    QUnit.asyncTest("Mobile logged in and set its id", function(assert) {
+      expect(4);
+
+      setupThen(function() {
+        assert.ok(defined(sessionStorage.getItem("id")), "sessionStorage id not null");
+        assert.ok(defined(Mobile.user().id), "Mobile user id not null");
+        assert.equal(sessionStorage.getItem("id"), Mobile.user().id, "sessionStorage and Mobile.user agree on id");
+        assert.ok($(".name_container:contains('" + Mobile.user().name + "')").length > 0, "name_container has the user name");
+        QUnit.start();
+      });
+    });
+
+    QUnit.asyncTest("Mobile sets timer on round start", function(assert) {
+      expect(1);
+      setupThen(function() {
+        testRound(function() {
+          assert.ok($(".timer:contains('" + (round_duration - Math.ceil(pause / 1000)) + "')").length > 0, "timer set to correct value");
+        })
+      });
+    });
+
+    QUnit.asyncTest("Mobile populates buttons on round start", function(assert) {
       expect(2);
 
-      setTimeout(function(){
-        assert.equal(sessionStorage.getItem("id"), Mobile.user().id, "sessionStorage and Mobile.user agree on id");  
-        assert.ok($(".name_container:contains('"+Mobile.user().name+"')").length > 0, "name_container has the user name");    
-        QUnit.start();
-      }, 1000);
+      setupThen(function() {
+        testRound(function() {
+          for (var btn = 0; btn < $("#input_body").children().length; btn++) {
+            var button = $("#input_body").children()[btn];
+            assert.equal($(button).val(), btn, "button" + btn + " has correct value");
+          }
+        })
+      });
     });
 
-    QUnit.asyncTest("Mobile sets timer on round start", function(assert){
-      setup();
-
-      expect(1);
-
-      // Wait one second for Mobile to connect, then publish roundStart
-      
-      setTimeout(function(){
-
-        testRoundStart();       
-        
-        //Wait 1/2 second for Mobile to receive roundStart, then check timer
-        setTimeout(function(){         
-          assert.ok($(".timer:contains('"+(round_duration - 1)+"')").length > 0, "timer set to correct value");    
-          
-          testRoundEnd();
-
-          QUnit.start();              
-        }, 500);
-
-      }, 1000);
-
-    });
-
-    // QUnit.asyncTest("Mobile populates buttons on round start", function(assert){
-    //   setup();
-      
-    //   expect(2);
-
-    //   // Wait one second for Mobile to connect, then publish roundStart     
-    //   setTimeout(function(){
-        
-    //     testRoundStart();      
-        
-    //     //Wait 1/2 second for Mobile to receive roundStart, then check timer
-    //     setTimeout(function(){         
-    //       for(var btn = 0; btn < $("#input_body").children().length; btn++){
-    //         var button = $("#input_body").children()[btn];
-    //         assert.equal($(button).val(), btn, "button"+btn+" has correct value");
-    //       }
-
-    //       testRoundEnd();
-
-    //       QUnit.start();                        
-    //     }, 500);
-
-    //   }, 1000);
-
-    // });
-
-    
+    // More tests to come
 
 
   };
