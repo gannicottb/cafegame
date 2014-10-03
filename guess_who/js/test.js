@@ -8,9 +8,16 @@ var Test = (function() {
   //Private functions
   //
 
+  var setup = function(){
+    Backend.connect();
+    Mobile.connect();            
+  }
+
+
   var main = function(autobahn_session){
     session = autobahn_session;
     console.log('test connected on', session);
+    sessionStorage.clear();
 
     //initial list of things to test in mobile.js
 
@@ -25,44 +32,93 @@ var Test = (function() {
     //changeNameClick
 
     QUnit.asyncTest("Mobile logged in and set its id", function(assert){
+      setup();     
+      
       expect(2);
 
-      Mobile.connect();
-
       setTimeout(function(){
-        assert.equal(sessionStorage.getItem("id"), Mobile.user().id);  
+        assert.equal(sessionStorage.getItem("id"), Mobile.user().id, "sessionStorage and Mobile.user agree on id");  
         assert.ok($(".name_container:contains('"+Mobile.user().name+"')").length > 0, "name_container has the user name");    
         QUnit.start();
       }, 1000);
     });
 
     QUnit.asyncTest("Mobile sets timer on round start", function(assert){
+      setup();
+      
       expect(1);
-
-      Mobile.connect();
 
       // Wait one second for Mobile to connect, then publish roundStart
       var correct_answer = {id: 1, keyword: "Mrs. Right"};
       var wrong_answer = {id: 0, keyword: "Mr. Wrong"};
       setTimeout(function(){
+        var round_duration = 5;
         session.publish("com.google.guesswho.roundStart", [wrong_answer, correct_answer],
          {
           correct_answer: correct_answer,
           round: 1,
-          round_end: new Date().getTime()+20000
+          round_end: new Date().getTime() + (round_duration * 1000)
         });        
         
         //Wait 1/2 second for Mobile to receive roundStart, then check timer
         setTimeout(function(){         
-          assert.ok($(".timer:contains('19')").length > 0, "timer has the text 19");    
-          QUnit.start();
-        }, 500);
+          assert.ok($(".timer:contains('"+(round_duration - 1)+"')").length > 0, "timer set to correct value");    
+          session.publish("com.google.guesswho.roundEnd",[], {
+            round: 1,
+            answers: correct_answer
+          }).then(
+            function(success){
+              QUnit.start();              
+            },
+            session.log
+          );
+        }, 700);
 
       }, 1000);
 
     });
 
-  
+    // QUnit.asyncTest("Mobile populates buttons on round start", function(assert){
+    //   expect(2);
+
+    //   Mobile.connect();
+
+    //   // Wait one second for Mobile to connect, then publish roundStart
+    //   var correct_answer = {id: 1, keyword: "Mrs. Right"};
+    //   var wrong_answer = {id: 0, keyword: "Mr. Wrong"};
+    //   setTimeout(function(){
+    //     var round_duration = 5;
+    //     session.publish("com.google.guesswho.roundStart", [wrong_answer, correct_answer],
+    //      {
+    //       correct_answer: correct_answer,
+    //       round: 1,
+    //       round_end: new Date().getTime() + (round_duration * 1000)
+    //     });        
+        
+    //     //Wait 1/2 second for Mobile to receive roundStart, then check timer
+    //     setTimeout(function(){         
+    //       for(var btn = 0; btn < $("#input_body").children().length; btn++){
+    //         var button = $("#input_body").children()[btn];
+    //         assert.equal($(button).val(), btn, "button"+btn+" has correct value");
+    //       }
+
+    //       session.publish("com.google.guesswho.roundEnd",{
+    //         round: 1,
+    //         answers: correct_answer
+    //       }).then(
+    //         function(success){
+    //           QUnit.start();              
+    //         },
+    //         session.log
+    //       );
+          
+    //     }, 700);
+
+    //   }, 1000);
+
+    // });
+
+    
 
 
   };

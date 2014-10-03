@@ -62,8 +62,28 @@ var Mobile = (function() {
     }, 1000);
   };
 
+  var logout = function() {
+    session.publish('com.google.guesswho.logout', [user.id]).then(
+      function(success) {
+        console.log(success);
+      }
+    );
+  };
+
+  var loginSuccess = function(success) {
+    // Store the user object returned from the server  
+    user = success;
+    sessionStorage.setItem("id", user.id);
+    // Display the username
+    setName(user.name);
+
+    console.log("user is logged in with uid " + Number(user.id) + ", and their score is " + user.score);
+    //retry = false;
+  }
+
   // Handle round start
   var onRoundStart = function(args, kwargs, details) {
+    console.log("Round", kwargs.round, "starting!");
     //Populate the input body with buttons
     var buttons = new EJS({
       url: 'templates/buttons.ejs'
@@ -79,6 +99,7 @@ var Mobile = (function() {
 
   // Handle round end
   var onRoundEnd = function(args, kwargs, details) {
+    console.log("Round", kwargs.round, "ended!");
     round_in_progress = false;
 
     if (kwargs.round != round) return;
@@ -176,13 +197,7 @@ var Mobile = (function() {
 
     // Auto logout if the user leaves the page (notify the backend)
     //
-    $(window).on('beforeunload', function() {
-      session.publish('com.google.guesswho.logout', [user.id]).then(
-        function(success) {
-          console.log(success);
-        }
-      );
-    })
+    $(window).on('beforeunload', logout );
 
     //Check to see if the device already has a user id
     //Note: needs to use localStorage for 'real' mobile testing
@@ -191,16 +206,7 @@ var Mobile = (function() {
     //Log in to the server (and get auto-registered if no uid is present)
     //
     session.call("com.google.guesswho.login", [user.id]).then(
-      function(success) {
-        // Store the user object returned from the server  
-        user = success;
-        sessionStorage.setItem("id", user.id);
-        // Display the username
-        setName(user.name);
-
-        console.log("user is logged in with uid " + Number(user.id) + ", and their score is " + user.score);
-        //retry = false;
-      },
+      loginSuccess,
       function(error) {
         console.log("login failed", error);
       }
@@ -290,5 +296,3 @@ var Mobile = (function() {
   };
 
 })();
-
-Mobile.connect();

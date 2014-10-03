@@ -54,7 +54,7 @@ var Backend = (function() {
     var user = lookup(uid);
     // Log them in
     user.logged_in = true;
-    logged_in_users++;
+    logged_in_users = getLoggedinUsers().length;
 
     if (round_in_progress == false && logged_in_users >= MIN_PLAYERS_TO_START) {
       //Start the next round in 5 seconds
@@ -84,6 +84,19 @@ var Backend = (function() {
       score: 0
     };
     return uid_counter++;
+  };
+
+  //Get logged in users
+  //Return array of logged in user objects from users
+  var getLoggedInUsers = function(){
+
+    //Filter logged in users from all users
+    var loggedInUsers = users.filter(function(check){
+      return check.logged_in === true;
+    });
+
+    return loggedInUsers;   
+    
   };
 
   // Change user names
@@ -236,24 +249,11 @@ var Backend = (function() {
       guess_list = shuffle(guess_list);
     }, 'text');
 
-    //Get logged in users
-    //Return array of logged in user objects from users
-    var getLoggedInUsers = function(args, kwargs, details){
-      
-      console.log("Entered getLoggedinUsers RPC");
-      
-      //Filter logged in users from all users
-      var loggedInUsers = users.filter(function(check){
-        return check.logged_in === true;
-      });
-
-      return loggedInUsers;
-    }
+    
 
 
     // Subscriptions
     session.subscribe('com.google.guesswho.logout', onLogout);
-    session.subscribe('com.google.guesswho.roundOver', onRoundOver);
 
     // REGISTER RPC
     //
@@ -272,7 +272,10 @@ var Backend = (function() {
         console.log("registered ", success.procedure);
       }, session.log
     );
-    session.register('com.google.guesswho.getLoggedInUsers', getLoggedInUsers).then(
+    session.register('com.google.guesswho.getLoggedInUsers', function(args, kwargs, details){
+       console.log("Entered getLoggedinUsers RPC");
+       return getLoggedinUsers();
+    })).then(
         function(success){
            console.log("registered ", success.procedure);
         }, session.log
@@ -322,7 +325,9 @@ var Backend = (function() {
       connection.open();
     },
 
+    users: function(){
+      return users;
+    }
+
   };
 })();
-
-Backend.connect();
