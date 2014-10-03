@@ -8,6 +8,7 @@ var Backend = (function() {
 
   // Members
   var session;
+<<<<<<< HEAD
   var correct_answer, guess_list, round_in_progress, answers;
   var uid_counter, users, logged_in_users;
   var round, round_end;
@@ -63,6 +64,7 @@ var Backend = (function() {
     return o;
   };
 
+
   // Login new and existing users
   var login = function(args, kwargs, details) {
     var uid = args[0]; //it's a string
@@ -96,6 +98,39 @@ var Backend = (function() {
 
     return user;
   };
+
+  //set the value of the timer
+  setTimer = function(timeout) {
+    var timeLeft = function(timeout) {
+      var now = new Date();
+      // if we set a timer with a negative or zero time, simply set it to now
+      if (timeout <= 0) timeout = now.getTime();
+      // that way, timeLeft returns 0s instead of a huge negative number
+      return Math.floor((timeout - now.getTime()) / 1000);
+    }
+    var renderTimer = function(time_left) {
+      var timer = new EJS({
+        url: 'templates/timer.ejs'
+      }).render({
+        time_left: time_left
+      });
+      $('.timer').html(timer);
+    }
+
+    renderTimer(timeLeft(timeout));
+
+    // Update the timer every second until the timer runs out
+    timer_interval = setInterval(function() {
+      var time_left = timeLeft(timeout);
+      if (time_left <= 0) {
+        clearInterval(timer_interval);
+        timer_interval = null;
+        time_left = 0;
+      }
+      renderTimer(time_left);
+    }, 1000);
+  };  
+
 
   // Register new devices
   //
@@ -210,6 +245,9 @@ var Backend = (function() {
 
     setTimeout(onRoundOver, ROUND_DURATION);
 
+    //Display Timer
+    setTimer(round_end);
+
     //Publish the roundStart event (everyone wants to know)
     session.publish("com.google.guesswho.roundStart", answers, {
       correct_answer: correct_answer,
@@ -223,6 +261,10 @@ var Backend = (function() {
   var onRoundOver = function(args, kwargs, details) {
     round_in_progress = false;
     round_end = 0;
+
+    // Clear the timer
+    setTimer(0);
+    
     //TODO:
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display

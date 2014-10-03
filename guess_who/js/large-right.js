@@ -95,20 +95,24 @@ function main(session) {
   }
   //
   // SUBSCRIPTIONS
-  //
+  
+  //Load gray colored icons to represent players in the round
   var onRoundStart = function(args, kwargs, details){
      
       showAllLoggedInUsers();
   }
 
+  //Change icon color based on guess correctness
   var onNewGuess = function(args, kwargs, details){
       
       new_guess = kwargs;
 
       // And then add the new_guess to the screen
 
+      //Get icon representing the user
       var player_icon = $('[data-id="'+kwargs.id+'"]');
 
+      //Change icon to green if guess is right, red if guess is wrong
       if(kwargs.correct)
         player_icon.attr('src','img/green_led.png');
       else
@@ -116,6 +120,36 @@ function main(session) {
 
   }
 
+  //Remove icon representing logged out user
+  var onLogout = function(args, kwargs, details) {
+    
+    var user_id = args[0];
+    
+    //Get icon representing the user
+    var player_icon = $('[data-id="'+user_id+'"]');
+
+    //Remove icon representing this user
+    player_icon.remove();
+
+  };
+
+  //Add new icon to represent logged in user
+  var onLogins = function(args, kwargs, details) {
+    
+    var new_player = kwargs.new_player;
+    var new_players = [];
+    new_players.push(new_player);
+    
+    var guesses_body = $('#guesses_body');
+
+    var image = new EJS({url: 'templates/guesses_display.ejs'}).render({loggedInUsers: new_players});
+
+    guesses_body.append(image);
+
+  };
+
+
+  // Subscribe to New Guess event
   session.subscribe("com.google.guesswho.newGuess", onNewGuess).then(
       function(success){
          console.log("subscribed to ", success.topic);
@@ -129,6 +163,19 @@ function main(session) {
     }, session.log
   );
 
+  // Subscribe to Logout event
+  session.subscribe('com.google.guesswho.logout', onLogout).then(
+    function(success){
+       console.log("subscribed to ", success.topic);
+    }, session.log
+  );
+
+  // Subscribe to Logins event
+  session.subscribe("com.google.guesswho.newLogin", onLogins).then(
+    function(success) {
+      console.log("subscribed to ", success.topic);
+    }, session.log
+  );
 }
 
 // now actually open the connection
