@@ -20,6 +20,19 @@ var Backend = (function() {
   var round = -1; // keep track of what round we're on
   var round_end = 0;
 
+  //Get logged in users
+  //Return array of logged in user objects from users
+  var getLoggedInUsers = function() {
+
+    //Filter logged in users from all users
+    var loggedInUsers = users.filter(function(check) {
+      return check.logged_in === true;
+    });
+
+    return loggedInUsers;
+
+  };
+
   //Private methods
   var verify = function(user) {
     if (user == undefined || user == null || user.logged_in == false) {
@@ -54,7 +67,7 @@ var Backend = (function() {
     var user = lookup(uid);
     // Log them in
     user.logged_in = true;
-    logged_in_users = getLoggedinUsers().length;
+    logged_in_users = getLoggedInUsers().length;
 
     if (round_in_progress == false && logged_in_users >= MIN_PLAYERS_TO_START) {
       //Start the next round in 5 seconds
@@ -86,18 +99,6 @@ var Backend = (function() {
     return uid_counter++;
   };
 
-  //Get logged in users
-  //Return array of logged in user objects from users
-  var getLoggedInUsers = function(){
-
-    //Filter logged in users from all users
-    var loggedInUsers = users.filter(function(check){
-      return check.logged_in === true;
-    });
-
-    return loggedInUsers;   
-    
-  };
 
   // Change user names
   //
@@ -275,7 +276,7 @@ var Backend = (function() {
     session.register('com.google.guesswho.getLoggedInUsers', function(args, kwargs, details){
        console.log("Entered getLoggedinUsers RPC");
        return getLoggedinUsers();
-    })).then(
+    }).then(
         function(success){
            console.log("registered ", success.procedure);
         }, session.log

@@ -45,7 +45,7 @@ var Test = (function() {
 
     QUnit.asyncTest("Mobile sets timer on round start", function(assert){
       setup();
-      
+
       expect(1);
 
       // Wait one second for Mobile to connect, then publish roundStart
@@ -63,16 +63,14 @@ var Test = (function() {
         //Wait 1/2 second for Mobile to receive roundStart, then check timer
         setTimeout(function(){         
           assert.ok($(".timer:contains('"+(round_duration - 1)+"')").length > 0, "timer set to correct value");    
+          
           session.publish("com.google.guesswho.roundEnd",[], {
             round: 1,
             answers: correct_answer
-          }).then(
-            function(success){
-              QUnit.start();              
-            },
-            session.log
-          );
-        }, 700);
+          });
+          
+          QUnit.start();              
+        }, 500);
 
       }, 1000);
 
