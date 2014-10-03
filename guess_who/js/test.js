@@ -4,6 +4,9 @@ var Test = (function() {
   //
 
   var session;
+  var correct_answer = {id: 1, keyword: "Mrs. Right"};
+  var wrong_answer = {id: 0, keyword: "Mr. Wrong"};
+  var round_duration = 5;
  
   //Private functions
   //
@@ -11,7 +14,24 @@ var Test = (function() {
   var setup = function(){
     Backend.connect();
     Mobile.connect();            
-  }
+  };
+
+  var testRoundStart = function()  {
+    session.publish("com.google.guesswho.roundStart", [wrong_answer, correct_answer],
+     {
+      correct_answer: correct_answer,
+      round: 1,
+      round_end: new Date().getTime() + (round_duration * 1000)
+    });        
+        
+  };
+
+  var testRoundEnd = function() {
+    session.publish("com.google.guesswho.roundEnd",[], {
+      round: 1,
+      answers: correct_answer
+    });
+  };
 
 
   var main = function(autobahn_session){
@@ -49,26 +69,17 @@ var Test = (function() {
       expect(1);
 
       // Wait one second for Mobile to connect, then publish roundStart
-      var correct_answer = {id: 1, keyword: "Mrs. Right"};
-      var wrong_answer = {id: 0, keyword: "Mr. Wrong"};
+      
       setTimeout(function(){
-        var round_duration = 5;
-        session.publish("com.google.guesswho.roundStart", [wrong_answer, correct_answer],
-         {
-          correct_answer: correct_answer,
-          round: 1,
-          round_end: new Date().getTime() + (round_duration * 1000)
-        });        
+
+        testRoundStart();       
         
         //Wait 1/2 second for Mobile to receive roundStart, then check timer
         setTimeout(function(){         
           assert.ok($(".timer:contains('"+(round_duration - 1)+"')").length > 0, "timer set to correct value");    
           
-          session.publish("com.google.guesswho.roundEnd",[], {
-            round: 1,
-            answers: correct_answer
-          });
-          
+          testRoundEnd();
+
           QUnit.start();              
         }, 500);
 
@@ -77,21 +88,14 @@ var Test = (function() {
     });
 
     // QUnit.asyncTest("Mobile populates buttons on round start", function(assert){
+    //   setup();
+      
     //   expect(2);
 
-    //   Mobile.connect();
-
-    //   // Wait one second for Mobile to connect, then publish roundStart
-    //   var correct_answer = {id: 1, keyword: "Mrs. Right"};
-    //   var wrong_answer = {id: 0, keyword: "Mr. Wrong"};
+    //   // Wait one second for Mobile to connect, then publish roundStart     
     //   setTimeout(function(){
-    //     var round_duration = 5;
-    //     session.publish("com.google.guesswho.roundStart", [wrong_answer, correct_answer],
-    //      {
-    //       correct_answer: correct_answer,
-    //       round: 1,
-    //       round_end: new Date().getTime() + (round_duration * 1000)
-    //     });        
+        
+    //     testRoundStart();      
         
     //     //Wait 1/2 second for Mobile to receive roundStart, then check timer
     //     setTimeout(function(){         
@@ -100,17 +104,10 @@ var Test = (function() {
     //         assert.equal($(button).val(), btn, "button"+btn+" has correct value");
     //       }
 
-    //       session.publish("com.google.guesswho.roundEnd",{
-    //         round: 1,
-    //         answers: correct_answer
-    //       }).then(
-    //         function(success){
-    //           QUnit.start();              
-    //         },
-    //         session.log
-    //       );
-          
-    //     }, 700);
+    //       testRoundEnd();
+
+    //       QUnit.start();                        
+    //     }, 500);
 
     //   }, 1000);
 
