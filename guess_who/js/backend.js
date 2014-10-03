@@ -8,7 +8,6 @@ var Backend = (function() {
 
   // Members
   var session;
-<<<<<<< HEAD
   var correct_answer, guess_list, round_in_progress, answers;
   var uid_counter, users, logged_in_users;
   var round, round_end;
