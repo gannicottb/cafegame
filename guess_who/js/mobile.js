@@ -4,7 +4,7 @@ var Mobile = (function() {
   //
 
   var session, user;
-  var round_in_progress, timer_interval
+  var round, round_in_progress, timer_interval
   var input_body, name_container;
 
   // Private functions
@@ -18,6 +18,7 @@ var Mobile = (function() {
     };
     input_body = $('#input_body');
     name_container = $('.name_container');
+    round = null;
     round_in_progress = false;
     timer_interval = null;
   }
@@ -87,6 +88,7 @@ var Mobile = (function() {
 
   // Handle round start
   var onRoundStart = function(args, kwargs, details) {
+    round = kwargs.round;
     console.log("Round", kwargs.round, "starting!");
     //Populate the input body with buttons
     var buttons = new EJS({
@@ -112,7 +114,7 @@ var Mobile = (function() {
     var buttons = new EJS({
       url: 'templates/buttons.ejs'
     }).render({
-      answers: kwargs.answers
+      answers: [kwargs.answers]
     });
     input_body.html(buttons);
 

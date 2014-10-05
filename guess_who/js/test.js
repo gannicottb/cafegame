@@ -4,20 +4,26 @@ var Test = (function() {
   //
 
   var session;
-  var correct_answer = {
-    id: 1,
-    keyword: "Mrs. Right"
-  };
-  var wrong_answer = {
-    id: 0,
-    keyword: "Mr. Wrong"
-  };
-  var round_duration = 5;
-
-  var pause = 50; // this value seems to work - latency is quite low
+  var correct_answer, wrong_answer;
+  var round_duration, pause; 
 
   //Private functions
   //
+
+  var init = function(){
+ 
+    correct_answer = {
+      id: 1,
+      keyword: "Mrs. Right"
+    };
+    wrong_answer = {
+      id: 0,
+      keyword: "Mr. Wrong"
+    };
+    round_duration = 5;
+
+    pause = 50; // this value seems to work - latency is quite low
+  }
 
   var defined = function(val) {
     return val != null && val != undefined
@@ -50,19 +56,38 @@ var Test = (function() {
     }, pause);
   };
 
-  var testRound = function(assertion) {
+  // var testRound = function(afterStart, afterEnd) {
+  //   publishRoundStart();
+  //   setTimeout(function() {
+  //     //test your assertion after pause
+  //     afterStart();
+  //     publishRoundEnd();
+  //     setTimeout(function() {
+
+  //       QUnit.start(); // after pause
+  //     }, pause);
+  //   }, pause);
+  // };
+  var testRound = function(assertions) {
     publishRoundStart();
     setTimeout(function() {
-      //test your assertion
-      assertion();
+      //wait, then test assertion after round start
+      if(assertions.afterStart != undefined){
+        assertions.afterStart();
+      }
       publishRoundEnd();
       setTimeout(function() {
-        QUnit.start();
+        //wait, then test assertion after round end
+        if(assertions.afterEnd != undefined){
+          assertions.afterEnd();
+        }
+        QUnit.start(); // after pause
       }, pause);
     }, pause);
   };
 
   var main = function(autobahn_session) {
+    init();
     session = autobahn_session;
     console.log('test connected on', session);
 
@@ -93,8 +118,10 @@ var Test = (function() {
     QUnit.asyncTest("Mobile sets timer on round start", function(assert) {
       expect(1);
       setupThen(function() {
-        testRound(function() {
-          assert.ok($(".timer:contains('" + (round_duration - Math.ceil(pause / 1000)) + "')").length > 0, "timer set to correct value");
+        testRound({
+          afterStart: function() {
+            assert.ok($(".timer:contains('" + (round_duration - Math.ceil(pause / 1000)) + "')").length > 0, "timer set to correct value");
+          }
         })
       });
     });
@@ -103,10 +130,31 @@ var Test = (function() {
       expect(2);
 
       setupThen(function() {
-        testRound(function() {
-          for (var btn = 0; btn < $("#input_body").children().length; btn++) {
-            var button = $("#input_body").children()[btn];
-            assert.equal($(button).val(), btn, "button" + btn + " has correct value");
+        testRound({
+          afterStart: function() {
+            var input_body = $("#qunit-fixture #input_body");
+            for (var btn = 0; btn < input_body.children().length; btn++) {
+              var button = input_body.children()[btn];
+              assert.equal($(button).val(), btn, "button" + btn + " has correct value");
+            }
+          }
+        })
+      });
+    });
+
+    QUnit.asyncTest("Mobile displays the correct answer in the input body on round end", function(assert){
+      expect(4);
+
+      setupThen(function(){
+        testRound({
+          afterEnd: function(){
+            var input_body = $("#qunit-fixture #input_body");
+            var answer = input_body.find('.answer:first');
+
+            assert.equal(input_body.children().length, 1, "there is only one answer button");
+            assert.ok(answer.prop('disabled'), "the correct answer button is disabled");
+            assert.ok(answer.hasClass('correct'), "the correct answer button has class correct");
+            assert.equal(answer.html(), correct_answer.keyword, "the correct keyword is displayed in the button");
           }
         })
       });
@@ -121,6 +169,9 @@ var Test = (function() {
 
     // A public API
     connect: function() {
+
+      
+
       // the URL of the WAMP Router (Crossbar.io)
       //
       var wsuri = null;
