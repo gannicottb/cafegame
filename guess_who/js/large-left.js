@@ -74,6 +74,12 @@ function hndlr(response) {
     image_result.result = response;
     image_result.index = 0;
     var item = response.items[0];
+
+    // Cache the result
+    var search_term = response.queries.request[0].searchTerms;
+    localStorage.setItem(search_term, item.link);
+    console.log("caching", search_term );
+
     img.src = item.link + '?' + new Date().getTime(); // cache bust
   }
   return false;
@@ -81,17 +87,29 @@ function hndlr(response) {
 
 function loadGoogleImage() {
   console.log("loading " + keyword);
-  var idx = googleAppKey.currentIndex;
-  var appkey = googleAppKey.items[idx];
-  console.log("Using app key: " + idx);
-  $.ajax({
-    url: 'https://www.googleapis.com/customsearch/v1?key=' + appkey + '&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image&imgSize=medium',
-    context: document.body,
-    success: function(responseText) {
-      var retry = eval(responseText);
-      if (retry) loadGoogleImage(); // retry
-    }
-  });
+
+  // Check to see if the image url is already cached
+  var cached_image_url = localStorage.getItem(keyword);
+  if(cached_image_url){
+    console.log("cache hit!");
+    img.src = cached_image_url + '?' + new Date().getTime(); // cache bust
+  } 
+  else { // The keyword doesn't have a cached URL
+    console.log("cache miss!");
+    var idx = googleAppKey.currentIndex;
+    var appkey = googleAppKey.items[idx];
+    console.log("Using app key: " + idx);
+
+    $.ajax({
+      url: 'https://www.googleapis.com/customsearch/v1?key=' + appkey + '&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image&imgSize=medium',
+      context: document.body,
+      success: function(responseText) {
+        var retry = eval(responseText);
+        if (retry) loadGoogleImage(); // retry
+      }
+    });
+    
+  }
 }
 
 function main(session){
@@ -135,11 +153,7 @@ function main(session){
         intervalId = undefined;
         pixelate(100); // show origin image
         console.log("Round Over! Show Answer: XXXX");
-        
-        // Publish roundOver event (backend wants to know)        
-        // session.publish("com.google.guesswho.roundOver", [], {
-        //   round: round
-        // });
+      
         $("#person_name").html("ANSWER: " + keyword);
       }
     }
