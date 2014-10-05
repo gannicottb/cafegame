@@ -56,18 +56,6 @@ var Test = (function() {
     }, pause);
   };
 
-  // var testRound = function(afterStart, afterEnd) {
-  //   publishRoundStart();
-  //   setTimeout(function() {
-  //     //test your assertion after pause
-  //     afterStart();
-  //     publishRoundEnd();
-  //     setTimeout(function() {
-
-  //       QUnit.start(); // after pause
-  //     }, pause);
-  //   }, pause);
-  // };
   var testRound = function(assertions) {
     publishRoundStart();
     setTimeout(function() {
@@ -75,13 +63,15 @@ var Test = (function() {
       if(assertions.afterStart != undefined){
         assertions.afterStart();
       }
-      publishRoundEnd();
-      setTimeout(function() {
-        //wait, then test assertion after round end
-        if(assertions.afterEnd != undefined){
-          assertions.afterEnd();
-        }
-        QUnit.start(); // after pause
+      setTimeout(function(){
+        //wait, then end the round
+        publishRoundEnd();
+        setTimeout(function() {
+          //wait, then test assertion after round end
+          if(assertions.afterEnd != undefined){
+            assertions.afterEnd();
+          }
+        }, pause);
       }, pause);
     }, pause);
   };
@@ -93,15 +83,16 @@ var Test = (function() {
 
     //initial list of things to test in mobile.js
 
-    //login
-    //setName
-    //setTimer
+    //*login
+    //*setName
+    //*setTimer
+    //*onRoundEnd
+    //*onRoundStart
+    //*answerClick
+    //*changeNameClick
 
-    //onRoundStart
-    //onRoundEnd
     //onLogins
-    //answerClick
-    //changeNameClick
+
 
     QUnit.asyncTest("Mobile logged in and set its id", function(assert) {
       expect(4);
@@ -115,14 +106,39 @@ var Test = (function() {
       });
     });
 
+    QUnit.asyncTest("Mobile logged in and changes its name", function(assert) {
+      expect(2);
+
+      setupThen(function() {
+        // Expose the name change elements
+        $("#qunit-fixture .name_container").trigger('click');
+
+        var edit_name_field = $("#qunit-fixture #edit_name");
+        var submit_name_button = $("#qunit-fixture #submit_name");
+        var new_name = "Foobar";
+        
+        edit_name_field.val(new_name);
+        submit_name_button.trigger('click');
+        setTimeout(function(){
+          //Verify that the name has changed
+          assert.ok(Mobile.user().name == new_name, "the name changed")
+          assert.ok($(".name_container:contains('" + Mobile.user().name + "')").length > 0, "name_container has the user name");
+          QUnit.start();
+        }, pause);
+      });
+    });  
+    
+
+
     QUnit.asyncTest("Mobile sets timer on round start", function(assert) {
       expect(1);
       setupThen(function() {
         testRound({
           afterStart: function() {
             assert.ok($(".timer:contains('" + (round_duration - Math.ceil(pause / 1000)) + "')").length > 0, "timer set to correct value");
+            QUnit.start();
           }
-        })
+        });
       });
     });
 
@@ -131,14 +147,59 @@ var Test = (function() {
 
       setupThen(function() {
         testRound({
-          afterStart: function() {
+          afterStart: function() {            
             var input_body = $("#qunit-fixture #input_body");
             for (var btn = 0; btn < input_body.children().length; btn++) {
               var button = input_body.children()[btn];
               assert.equal($(button).val(), btn, "button" + btn + " has correct value");
             }
+            QUnit.start();
           }
-        })
+        });
+      });
+    });
+
+    QUnit.asyncTest("User submits wrong answer", function(assert){
+      expect(2);
+
+      setupThen(function(){
+        testRound({
+          afterStart: function(){
+            Backend.debug.setCorrectAnswer(correct_answer);
+            Backend.debug.roundInProgress(true);
+            // Click a button
+            var wrong_button = $("#qunit-fixture #input_body .answer[value='"+wrong_answer.id+"']");
+            wrong_button.trigger('click');
+            // wait, then check to see if the button reacts correctly
+            setTimeout(function(){
+              assert.ok(wrong_button.prop('disabled'), "the incorrect answer button is disabled");
+              assert.ok(wrong_button.hasClass('incorrect'), "the incorrect answer button has class incorrect");              
+              QUnit.start();
+            }, pause);
+          }
+        });
+      });
+    });
+
+    QUnit.asyncTest("User submits right answer", function(assert){
+      expect(2);
+
+      setupThen(function(){
+        testRound({
+          afterStart: function(){
+            Backend.debug.setCorrectAnswer(correct_answer);
+            Backend.debug.roundInProgress(true);
+            // Click a button
+            var correct_button = $("#qunit-fixture #input_body .answer[value='"+correct_answer.id+"']");
+            correct_button.trigger('click');
+            // wait, then check to see if the button reacts correctly
+            setTimeout(function(){
+              assert.ok(correct_button.prop('disabled'), "the correct answer button is disabled");
+              assert.ok(correct_button.hasClass('correct'), "the correct answer button has class correct");
+              QUnit.start();              
+            }, pause);
+          }
+        });
       });
     });
 
@@ -155,8 +216,9 @@ var Test = (function() {
             assert.ok(answer.prop('disabled'), "the correct answer button is disabled");
             assert.ok(answer.hasClass('correct'), "the correct answer button has class correct");
             assert.equal(answer.html(), correct_answer.keyword, "the correct keyword is displayed in the button");
+            QUnit.start();
           }
-        })
+        });
       });
     });
 
@@ -169,8 +231,6 @@ var Test = (function() {
 
     // A public API
     connect: function() {
-
-      
 
       // the URL of the WAMP Router (Crossbar.io)
       //

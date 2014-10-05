@@ -380,9 +380,21 @@ var Backend = (function() {
       connection.open();
     },
 
-    users: function(){
-      return users;
+    debug: {
+      users: function(){
+        return users;
+      },
+
+      setCorrectAnswer: function(correct){
+        correct_answer = correct;
+      },
+
+      roundInProgress: function(in_progress){
+        round_in_progress = in_progress;
+      }
+      
     }
+
 
   };
 })();
