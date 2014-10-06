@@ -138,6 +138,21 @@ var Mobile = (function() {
     }
   };
 
+  //Handle entry into an existing round
+  var onContinueOnThisRound = function(args, kwargs, details) {
+    round = kwargs.round;
+    
+    //Populate the input body with buttons
+    var buttons = new EJS({
+      url: 'templates/buttons.ejs'
+    }).render({
+      answers: args
+    });
+    input_body.html(buttons);
+
+    setTimer(kwargs.round_end);
+  };
+
   var answerClick = function(event){
     // Disable all buttons in the input_body
       clicked_button = $(event.target);
@@ -247,6 +262,14 @@ var Mobile = (function() {
     // Subscribe to Logins event
     //
     session.subscribe("com.google.guesswho.newLogin", onLogins).then(
+      function(success) {
+        console.log("subscribed to ", success.topic);
+      }, session.log
+    );
+
+    //Subscribe to the Continue on This Round event
+    //
+    session.subscribe("com.google.guesswho.continueOnThisRound", onContinueOnThisRound).then(
       function(success) {
         console.log("subscribed to ", success.topic);
       }, session.log

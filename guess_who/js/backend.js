@@ -84,14 +84,19 @@ var Backend = (function() {
       //Start the next round in 5 seconds
       setTimeout(startNextRound, 5000);
     }
-
+  
     session.publish("com.google.guesswho.newLogin", [], {
       players_needed: (logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0),
       new_player: {
         id: user.id,
         name: user.name
       }
-    });
+    });     
+    
+    if(round_in_progress && logged_in_users >= MIN_PLAYERS_TO_START)
+    {  
+      continueOnThisRound();
+    }
 
     console.log("User " + user.name + " is logged in.");
 
@@ -279,7 +284,17 @@ var Backend = (function() {
     }
   };
 
+  //Player entered mid-round
+  var continueOnThisRound = function(){
   
+    //Publish the event 
+    session.publish("com.google.guesswho.continueOnThisRound", answers, {
+      correct_answer: correct_answer,
+      round: round,
+      round_end: round_end
+    });    
+
+  }
 
   var main = function(autobahn_session) {
 
@@ -324,14 +339,26 @@ var Backend = (function() {
         console.log("registered ", success.procedure);
       }, session.log
     );
-    session.register('com.google.guesswho.getLoggedInUsers', function(args, kwargs, details){
-       console.log("Entered getLoggedinUsers RPC");
-       return getLoggedinUsers();
-    }).then(
-        function(success){
-           console.log("registered ", success.procedure);
-        }, session.log
-     );    
+
+    // session.register('com.google.guesswho.getLoggedInUsers', function(args, kwargs, details){
+    //    console.log("Entered getLoggedinUsers RPC");
+    //    return getLoggedinUsers();
+    // }).then(
+    //     function(success){
+    //        console.log("registered ", success.procedure);
+    //     }, session.log
+    //  );    
+
+    session.register('com.google.guesswho.getLoggedInUsers', getLoggedinUsers).then(
+      function(success) {
+        console.log("fetched logged in users succesfully ", success.procedure);
+      }, 
+      function(error) {
+        session.log;
+      }
+    );
+    
+
   };
 
   return {
