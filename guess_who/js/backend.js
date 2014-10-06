@@ -4,30 +4,47 @@ var Backend = (function() {
   //
 
   //Constants
-  var NUMBER_OF_ANSWERS, ROUND_DURATION, MIN_PLAYERS_TO_START;
+  var NUMBER_OF_ANSWERS, ROUND_DURATION, PREPARE_DURATION, MIN_PLAYERS_TO_START;
 
   // Members
   var session;
   var correct_answer, guess_list, round_in_progress, answers;
-  var uid_counter, users, logged_in_users;
+  var uid_counter, users, logged_in_users, timeout_id;
   var round, round_end;
 
   var init = function(){
     NUMBER_OF_ANSWERS = 4;
     ROUND_DURATION = 20000; // in ms
     MIN_PLAYERS_TO_START = 2; //set to 2 for DEBUG
+    PREPARE_DURATION = 5000; // in ms
 
     // Members
     session;
-    correct_answer = null;
+    //correct_answer = null;
     uid_counter = 0;
     users = [];
     logged_in_users = 0;
+    timeout_id = null;
+    
     guess_list = [];
-    round_in_progress = false;
-    answers = [];
-    round = -1; // keep track of what round we're on
-    round_end = 0;
+    
+    states = {
+      WAIT: 0,
+      PREPARE: 1,
+      PROGRESS: 2
+    }
+
+    round = {
+      state: states.WAIT,
+      correct_answer: null,
+      answers: [],
+      number: -1,
+      end: 0
+    }
+    //round_in_progress = false;
+    //answers = [];
+    //round = -1; // keep track of what round we're on
+    //round_end = 0;
   };
 
   //Get logged in users
@@ -66,6 +83,8 @@ var Backend = (function() {
 
   // Login new and existing users
   var login = function(args, kwargs, details) {
+    var result;
+
     var uid = args[0]; //it's a string
     console.log("uid " + args[0] + " logging in");
 
@@ -78,29 +97,49 @@ var Backend = (function() {
     var user = lookup(uid);
     // Log them in
     user.logged_in = true;
+
+    console.log("User " + user.name + " is logged in.");
+
     logged_in_users = getLoggedInUsers().length;
 
-    if (round_in_progress == false && logged_in_users >= MIN_PLAYERS_TO_START) {
-      //Start the next round in 5 seconds
-      setTimeout(startNextRound, 5000);
+    switch(round.state){
+      case states.WAIT:
+        if(logged_in_users >= MIN_PLAYERS_TO_START){
+          round.state = states.PREPARE;
+          timeout_id = setTimeout(startNextRound, PREPARE_DURATION);
+        }else{
+          //maybe bundle in the number of players needed at this point only
+          result.players_needed = logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0
+        }
+        break;
+      case states.PREPARE:
+        // do nothing
+        break;
+      case states.PROGRESS:
+        // bundle in what the mobile.js needs to join the game midround
+        result.round = round;
+        break;
     }
+
+    // if (round_in_progress == false && logged_in_users >= MIN_PLAYERS_TO_START) {
+    //   //Start the next round in 5 seconds
+    //   setTimeout(startNextRound, 5000);
+    // }
   
     session.publish("com.google.guesswho.newLogin", [], {
-      players_needed: (logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0),
+      //players_needed: (logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0),
       new_player: {
         id: user.id,
         name: user.name
       }
     });     
     
-    if(round_in_progress && logged_in_users >= MIN_PLAYERS_TO_START)
-    {  
-      continueOnThisRound();
-    }
+    // if(round_in_progress && logged_in_users >= MIN_PLAYERS_TO_START)
+    // {  
+    //   continueOnThisRound();
+    // }
 
-    console.log("User " + user.name + " is logged in.");
-
-    return user;
+    return result;
   };
 
   //set the value of the timer
@@ -168,7 +207,7 @@ var Backend = (function() {
   //
   var submitGuess = function(args, kwargs, details) {
     // Check to make sure the round is still going
-    if (round_in_progress === false) {
+    if (round.state != states.PROGRESS ) {
       return;
     }
 
@@ -177,13 +216,13 @@ var Backend = (function() {
     verify(user);
 
     // Is the guess correct?
-    var correct = (Number(kwargs.val) === correct_answer.id);
+    var correct = (Number(kwargs.val) === round.correct_answer.id);
 
     // Determine their score, add it to their total
     var score = 0;
 
     if (correct) { // If you didn't get it right, you get a score of 0 (maybe some very small number just for playing?)
-      var time_left = Math.floor((round_end - kwargs.time)); // in ms
+      var time_left = Math.floor((round.end - kwargs.time)); // in ms
       score = ((time_left / ROUND_DURATION) * 5) | 0; // Max score is 5.   
     }
 
@@ -191,7 +230,7 @@ var Backend = (function() {
 
     // Publish the new guess event
     session.publish('com.google.guesswho.newGuess', [], {
-      round: round,
+      round: round.number,
       id: user.id,
       correct: correct
     })
@@ -211,9 +250,17 @@ var Backend = (function() {
   var onLogout = function(args, kwargs, details) {
     var user = lookup(args[0]);
     user.logged_in = false;
-    // Just in case something weird has happened. We can't have a negative number of users.
-    if (logged_in_users > 0) logged_in_users--;
-    var logout_msg = 'User ' + user.name + ' has logged out!';
+    var logout_msg = 'User ' + user.name + ' has logged out!';    
+    logged_in_users = getLoggedInUsers();
+
+    if(round.state === states.PREPARE){
+      if(logged_in_users < MIN_PLAYERS_TO_START){
+        round.state = states.WAITING;
+        clearTimeout(timeout_id);
+        //publish an event? com.google.guesswho
+      }
+    }
+
     console.log(logout_msg);
     return logout_msg;
   };
@@ -223,7 +270,8 @@ var Backend = (function() {
   var startNextRound = function() {
     // Increment (wrapping if at end of list) the round
     round = (round + 1) % guess_list.length;
-    round_in_progress = true;
+    //round_in_progress = true;
+    round.state = states.PROGRESS
 
     $('#round_number').html("Round" + round);
 
@@ -285,16 +333,16 @@ var Backend = (function() {
   };
 
   //Player entered mid-round
-  var continueOnThisRound = function(){
+  // var continueOnThisRound = function(){
   
-    //Publish the event 
-    session.publish("com.google.guesswho.continueOnThisRound", answers, {
-      correct_answer: correct_answer,
-      round: round,
-      round_end: round_end
-    });    
+  //   //Publish the event 
+  //   session.publish("com.google.guesswho.continueOnThisRound", answers, {
+  //     correct_answer: correct_answer,
+  //     round: round,
+  //     round_end: round_end
+  //   });    
 
-  }
+  // }
 
   var main = function(autobahn_session) {
 
@@ -400,6 +448,10 @@ var Backend = (function() {
       users: function(){
         return users;
       },
+
+      round: function(){
+        return round;
+      }
 
       setCorrectAnswer: function(correct){
         correct_answer = correct;
