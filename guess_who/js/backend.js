@@ -341,7 +341,7 @@ var Backend = (function() {
         console.log("Entered getLoggedInUsers RPC");
         return getLoggedInUsers();
       }
-    } ).then(
+     ).then(
       function(success){
          console.log("registered ", success.procedure);
       }, session.log
