@@ -54,3 +54,7 @@ com.google.guesswho.submit
 	submitGuess(kwargs{string id, int val, int time})
 	return {bool correct, int score}
 
+com.google.guesswho.getLoggedInUsers
+	getLoggedInUsersRPC
+	return [user{}, user{} ...]
+
