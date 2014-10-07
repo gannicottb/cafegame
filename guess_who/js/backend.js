@@ -40,12 +40,9 @@ var Backend = (function() {
       answers: [],
       number: -1,
       end: 0,
-      players_needed: MIN_PLAYERS_TO_START
+      players_needed: MIN_PLAYERS_TO_START,
+      submitted_guesses: 0
     }
-    //round_in_progress = false;
-    //answers = [];
-    //round = -1; // keep track of what round we're on
-    //round_end = 0;
   };
 
   //Get logged in users
@@ -212,6 +209,8 @@ var Backend = (function() {
 
     verify(user);
 
+    round.submitted_guesses++;
+
     // Is the guess correct?
     var correct = (Number(kwargs.val) === round.correct_answer.id);
 
@@ -231,6 +230,12 @@ var Backend = (function() {
       id: user.id,
       correct: correct
     })
+
+    // End the round early - good feature, but it causes problems
+    // if(round.submitted_guesses === logged_in_users){
+    //   clearTimeout(timeout_id);
+    //   onRoundOver();
+    // }
 
     // Return their score for the round
     result = {
@@ -305,7 +310,8 @@ var Backend = (function() {
   // When the round timeout is reached
   //
   var onRoundOver = function(args, kwargs, details) {
-    // round_in_progress = false;
+    round.submitted_guesses = 0;
+    
     if(round.state === states.PROGRESS){
       round.state = states.PREPARE;      
     }
