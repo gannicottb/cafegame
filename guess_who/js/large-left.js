@@ -36,7 +36,13 @@ var googleAppKey = {
     'AIzaSyCpElm3KrFqHAGWtgEukyl6pXWlUOyzQ-Q'
   ],
   currentIndex: 0
-}
+};
+
+states = {
+  WAIT: 0,
+  PREPARE: 1,
+  PROGRESS: 2
+};
 
 var round_number;
 var keyword = "";
@@ -212,11 +218,11 @@ function main(session){
       round_number = kwargs.number;
       switch(kwargs.state){
         case states.WAIT:
+          $("#person_name").html("Waiting for "+kwargs.players_needed+" players to start next round");
           break;
         case states.PREPARE:
-          break;
-        case states.PROGRESS
-          break;
+          $("#person_name").append("Next round beginning in 5 seconds");
+          break;       
       }
     }
     //

@@ -102,7 +102,7 @@ var Mobile = (function() {
         break;
       case states.WAIT:
         // Update the waiting message
-        var waiting = new EJS({url: 'templates/waiting.ejs'}).render(kwargs.round);        
+        var waiting = new EJS({url: 'templates/waiting.ejs'}).render(round);        
         input_body.html(waiting);
         break;
       case states.PREPARE:
@@ -116,12 +116,18 @@ var Mobile = (function() {
   //
   var onStateChange = function(args, kwargs, details){
     round = kwargs;
-    if(round.state === states.WAIT){
-      // Update the waiting message
-      var waiting = new EJS({url: 'templates/waiting.ejs'}).render(round);        
-      input_body.html(waiting);
-    }else if(round.state === states.PREPARE){
-      input_body.html("Preparing for next round in 5 seconds");
+
+    switch(round.state){
+      case states.WAIT:
+        console.log("Round is waiting");
+        // Update the waiting message
+        var waiting = new EJS({url: 'templates/waiting.ejs'}).render(round);        
+        input_body.html(waiting);
+        break;
+      case states.PREPARE:
+        console.log("Round is preparing");
+        input_body.html("Preparing for next round in 5 seconds");
+        break;      
     }
   }
 
