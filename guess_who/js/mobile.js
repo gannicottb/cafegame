@@ -3,7 +3,7 @@ var Mobile = (function() {
   //Private variables
   //
 
-  var session, user;
+  var session, user, states;
   var round, round_in_progress, timer_interval
   var input_body, name_container;
 
@@ -11,6 +11,12 @@ var Mobile = (function() {
   //
 
   var init = function(){
+    states = {
+      WAIT: 0,
+      PREPARE: 1,
+      PROGRESS: 2
+    };
+
     user = {
       id: null,
       name: "",
@@ -19,7 +25,7 @@ var Mobile = (function() {
     input_body = $('#input_body');
     name_container = $('.name_container');
     round = null;
-    round_in_progress = false;
+    //round_in_progress = false;
     timer_interval = null;
   }
 
@@ -76,46 +82,72 @@ var Mobile = (function() {
   };
 
   var loginSuccess = function(success) {
+    console.log("user is logged in with uid " + Number(user.id) + ", and their score is " + user.score);
     // Store the user object returned from the server  
-    user = success;
+    user = success.user;
     sessionStorage.setItem("id", user.id);
+    // Store the round information returned from the server
+    round = success.round;
+
     // Display the username
     setName(user.name);
 
-    console.log("user is logged in with uid " + Number(user.id) + ", and their score is " + user.score);
-    //retry = false;
+    switch(round.state){
+      case states.PROGRESS:
+        //Populate the input body with buttons
+        var buttons = new EJS({
+          url: 'templates/buttons.ejs'
+        }).render({
+          answers: round.answers
+        });
+        input_body.html(buttons);
+
+        setTimer(round.end);
+        break;
+      case states.WAIT:
+        // Update the waiting message
+        var waiting = new EJS({url: 'templates/waiting.ejs'}).render(success);        
+        input_body.html(waiting);
+        break;
+      case states.PREPARE:
+        input_body.html("Preparing for next round in 5 seconds");
+        break;      
+    }
+  }
+
+  //Generic state change handling
+  //could handle round start and end, honestly
+  //
+  var onStateChange = function(args, kwargs, details){
+    round = kwargs;
+    if(round.state === states.WAIT){
+      // Update the waiting message
+      var waiting = new EJS({url: 'templates/waiting.ejs'}).render(success);        
+      input_body.html(waiting);
+      // Clear the timer
+      setTimer(0);
+    }
   }
 
   // Handle round start
   var onRoundStart = function(args, kwargs, details) {
-    round = kwargs.round;
-    console.log("Round", kwargs.round, "starting!");
+    round = kwargs;
+    console.log("Round", round.number, "starting!");
     //Populate the input body with buttons
-    var buttons = new EJS({
-      url: 'templates/buttons.ejs'
-    }).render({
-      answers: args
-    });
+    var buttons = new EJS({url: 'templates/buttons.ejs'}).render(round);
     input_body.html(buttons);
 
-    round_in_progress = true;
-
-    setTimer(kwargs.round_end);
+    setTimer(round.end);
   };
 
   // Handle round end
   var onRoundEnd = function(args, kwargs, details) {
-    console.log("Round", kwargs.round, "ended!");
-    round_in_progress = false;
-
-    if (kwargs.round != round) return;
+    round = kwargs;
+    console.log("Round", round.number, "ended!");
+    
 
     //Populate the input body with only the correct button
-    var buttons = new EJS({
-      url: 'templates/buttons.ejs'
-    }).render({
-      answers: [kwargs.answers]
-    });
+    var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: [round.correct_answer]});
     input_body.html(buttons);
 
     // Disable the button and color it appropriately
@@ -128,60 +160,42 @@ var Mobile = (function() {
   };
 
   // Handle new login event
-  var onLogins = function(args, kwargs, details) {
-    // Update the waiting message
-    var waiting = new EJS({
-      url: 'templates/waiting.ejs'
-    }).render(kwargs);
-    if (!round_in_progress) {
-      input_body.html(waiting);
-    }
-  };
+  // var onLogins = function(args, kwargs, details) {
+    
+  // };
 
   //Handle entry into an existing round
-  var onContinueOnThisRound = function(args, kwargs, details) {
-    round = kwargs.round;
+  // var onContinueOnThisRound = function(args, kwargs, details) {
     
-    //Populate the input body with buttons
-    var buttons = new EJS({
-      url: 'templates/buttons.ejs'
-    }).render({
-      answers: args
-    });
-    input_body.html(buttons);
-
-    setTimer(kwargs.round_end);
-  };
+  // };
 
   var answerClick = function(event){
     // Disable all buttons in the input_body
-      clicked_button = $(event.target);
-      input_body.children('.answer').prop('disabled', true);
-      clicked_button.addClass('selected'); // add a border to indicate that the button has been clicked
+    clicked_button = $(event.target);
+    input_body.children('.answer').prop('disabled', true);
+    clicked_button.addClass('selected'); // add a border to indicate that the button has been clicked
 
-      // Submit the answer to the server
-      session.call("com.google.guesswho.submit", [], {
-        id: user.id,
-        val: clicked_button.val(),
-        time: new Date().getTime()
-      }).then(
-        function(success) {
-          clicked_button.addClass(success.correct ? 'correct' : 'incorrect');
-          // TODO: Display the score in some nice way
+    // Submit the answer to the server
+    session.call("com.google.guesswho.submit", [], {
+      id: user.id,
+      val: clicked_button.val(),
+      time: new Date().getTime()
+    }).then(
+      function(success) {
+        clicked_button.addClass(success.correct ? 'correct' : 'incorrect');
+        // TODO: Display the score in some nice way
 
-          // Update the score
-          user.score += success.score
-          name_container.html(new EJS({
-            url: 'templates/user_name.ejs'
-          }).render(user));
+        // Update the score
+        user.score += success.score
+        name_container.html(new EJS({url: 'templates/user_name.ejs'}).render(user));
 
-          console.log("Score for this round was ", success.score);
-        },
-        function(error) {
-          console.log("Submit guess failed", error)
-          //retry
-        }
-      );
+        console.log("Score for this round was ", success.score);
+      },
+      function(error) {
+        console.log("Submit guess failed", error)
+        //retry
+      }
+    );
   };
 
   var changeNameClick = function(event) {
@@ -259,21 +273,21 @@ var Mobile = (function() {
       }, session.log
     );
 
-    // Subscribe to Logins event
+    // Subscribe to State Change event
     //
-    session.subscribe("com.google.guesswho.newLogin", onLogins).then(
+    session.subscribe("com.google.guesswho.stateChange", onStateChange).then(
       function(success) {
         console.log("subscribed to ", success.topic);
       }, session.log
     );
 
-    //Subscribe to the Continue on This Round event
+    // Subscribe to Logins event
     //
-    session.subscribe("com.google.guesswho.continueOnThisRound", onContinueOnThisRound).then(
-      function(success) {
-        console.log("subscribed to ", success.topic);
-      }, session.log
-    );
+    // session.subscribe("com.google.guesswho.newLogin", onLogins).then(
+    //   function(success) {
+    //     console.log("subscribed to ", success.topic);
+    //   }, session.log
+    // );
   };
 
   return {

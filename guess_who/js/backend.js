@@ -100,6 +100,8 @@ var Backend = (function() {
 
     console.log("User " + user.name + " is logged in.");
 
+    result.user = user; // add the user to the result bundle
+
     logged_in_users = getLoggedInUsers().length;
 
     switch(round.state){
@@ -117,9 +119,10 @@ var Backend = (function() {
         break;
       case states.PROGRESS:
         // bundle in what the mobile.js needs to join the game midround
-        result.round = round;
         break;
     }
+
+    result.round = round; // add the round to the result bundle
 
     // if (round_in_progress == false && logged_in_users >= MIN_PLAYERS_TO_START) {
     //   //Start the next round in 5 seconds
@@ -257,7 +260,7 @@ var Backend = (function() {
       if(logged_in_users < MIN_PLAYERS_TO_START){
         round.state = states.WAITING;
         clearTimeout(timeout_id);
-        //publish an event? com.google.guesswho
+        session.publish("com.google.guesswho.stateChange", [], round);
       }
     }
 
@@ -269,50 +272,47 @@ var Backend = (function() {
   //
   var startNextRound = function() {
     // Increment (wrapping if at end of list) the round
-    round = (round + 1) % guess_list.length;
+    round.number = (round.number + 1) % guess_list.length;
     //round_in_progress = true;
-    round.state = states.PROGRESS
+    round.state = states.PROGRESS;
 
-    $('#round_number').html("Round" + round);
+    $('#round_number').html("Round" + round.number);
 
     //Pick the keyword for the round, save the id
     //correct_id = guess_list[round].id;
-    correct_answer = guess_list[round];
+    round.correct_answer = guess_list[round.number];
 
     //Generate the answers
     //
     //Slice the list of keywords before and after the current keyword, then glue them together and shuffle the result
-    var potentialAnswers = shuffle(guess_list.slice(0, round).concat(guess_list.slice(round + 1, guess_list.length)));
+    var potentialAnswers = shuffle(guess_list.slice(0, round.number).concat(guess_list.slice(round.number + 1, guess_list.length)));
     // clear out the answers  
-    answers = [];
+    round.answers = [];
     //load in the correct answer
-    answers[0] = correct_answer;
+    round.answers[0] = round.correct_answer;
     // concatenate a slice of more possible answers to the array
-    answers = answers.concat(potentialAnswers.slice(0, NUMBER_OF_ANSWERS - 1));
+    round.answers = round.answers.concat(potentialAnswers.slice(0, NUMBER_OF_ANSWERS - 1));
     // randomize the answer choices
-    shuffle(answers);
+    shuffle(round.answers);
 
     //Set the alarm
-    round_end = new Date().getTime() + ROUND_DURATION;
+    round.end = new Date().getTime() + ROUND_DURATION;
 
     setTimeout(onRoundOver, ROUND_DURATION);
 
     //Display Timer
-    setTimer(round_end);
+    setTimer(round.end);
 
     //Publish the roundStart event (everyone wants to know)
-    session.publish("com.google.guesswho.roundStart", answers, {
-      correct_answer: correct_answer,
-      round: round,
-      round_end: round_end
-    });
+    session.publish("com.google.guesswho.roundStart", [], round);
   };
 
   // When the round timeout is reached
   //
   var onRoundOver = function(args, kwargs, details) {
-    round_in_progress = false;
-    round_end = 0;
+    // round_in_progress = false;
+    round.state = states.PREPARE;
+    round.end = 0;
 
     // Clear the timer
     setTimer(0);
@@ -321,15 +321,16 @@ var Backend = (function() {
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display
 
-    session.publish('com.google.guesswho.roundEnd', [], {
-      round: round,
-      answers: correct_answer
-    });
+    session.publish('com.google.guesswho.roundEnd', [], round);
 
-    if (round_in_progress === false && logged_in_users >= MIN_PLAYERS_TO_START) {
-      //Start the next round in 5 seconds
-      setTimeout(startNextRound, 5000);
+    if(logged_in_users >= MIN_PLAYERS_TO_START){
+      timeout_id = setTimeout(startNextRound, PREPARE_DURATION);
     }
+
+    // if (round_in_progress === false && ) {
+    //   //Start the next round in 5 seconds
+    //   setTimeout(startNextRound, 5000);
+    // }
   };
 
   //Player entered mid-round
