@@ -87,14 +87,15 @@ var Backend = (function() {
     var uid = args[0]; //it's a string
     console.log("uid " + args[0] + " logging in");
 
-    // Register if the user passes in a null id
-    if (uid == null || uid == undefined) {
+    // Register if the user passes in a null id or with an id the backend doesn't recognize
+    if (uid == null || uid == undefined || lookup(uid) == undefined) {
       uid = register();
     }
 
     // Grab the user from the "database"
     var user = lookup(uid);
     // Log them in
+    var logged_back_in = user.logged_in;
     user.logged_in = true;
 
     console.log("User " + user.name + " is logged in.");
@@ -127,13 +128,14 @@ var Backend = (function() {
 
     result.round = round; // add the round to the result bundle
   
-    session.publish("com.google.guesswho.newLogin", [], {      
-      new_player: {
-        id: user.id,
-        name: user.name
-      }
-    });     
-
+    if(!logged_back_in){ // only publish newlogin event if the person wasn't logged in before
+      session.publish("com.google.guesswho.newLogin", [], {      
+        new_player: {
+          id: user.id,
+          name: user.name
+        }
+      });     
+    }
     return result;
   };
 
