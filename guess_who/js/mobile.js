@@ -62,7 +62,7 @@ var Mobile = (function() {
     renderTimer(timeLeft(timeout));
 
     // Update the timer every second until the timer runs out
-    timer_interval = setInterval(function() {
+    var timer_interval = setInterval(function() {
       var time_left = timeLeft(timeout);
       if (time_left <= 0) {
         clearInterval(timer_interval);
@@ -74,20 +74,16 @@ var Mobile = (function() {
   };
 
   var logout = function() {
-    session.publish('com.google.guesswho.logout', [user.id]).then(
-      function(success) {
-        console.log(success);
-      }
-    );
+    session.publish('com.google.guesswho.logout', [user.id]);
   };
 
-  var loginSuccess = function(success) {
-    console.log("user is logged in with uid " + Number(user.id) + ", and their score is " + user.score);
+  var loginSuccess = function(kwargs) {
     // Store the user object returned from the server  
-    user = success.user;
+    user = kwargs.user;
+    console.log("user is logged in with uid " + Number(user.id) + ", and their score is " + user.score);
     sessionStorage.setItem("id", user.id);
     // Store the round information returned from the server
-    round = success.round;
+    round = kwargs.round;
 
     // Display the username
     setName(user.name);
@@ -106,7 +102,7 @@ var Mobile = (function() {
         break;
       case states.WAIT:
         // Update the waiting message
-        var waiting = new EJS({url: 'templates/waiting.ejs'}).render(success);        
+        var waiting = new EJS({url: 'templates/waiting.ejs'}).render(kwargs.round);        
         input_body.html(waiting);
         break;
       case states.PREPARE:
@@ -122,10 +118,10 @@ var Mobile = (function() {
     round = kwargs;
     if(round.state === states.WAIT){
       // Update the waiting message
-      var waiting = new EJS({url: 'templates/waiting.ejs'}).render(success);        
+      var waiting = new EJS({url: 'templates/waiting.ejs'}).render(round);        
       input_body.html(waiting);
-      // Clear the timer
-      setTimer(0);
+    }else if(round.state === states.PREPARE){
+      input_body.html("Preparing for next round in 5 seconds");
     }
   }
 

@@ -207,6 +207,18 @@ function main(session){
       showAnswer();
       
     }
+
+    var onStateChange = function(args, kwargs, details){
+      round_number = kwargs.number;
+      switch(kwargs.state){
+        case states.WAIT:
+          break;
+        case states.PREPARE:
+          break;
+        case states.PROGRESS
+          break;
+      }
+    }
     //
     // SUBSCRIPTIONS
     //
@@ -215,12 +227,17 @@ function main(session){
       function(success){
          console.log("subscribed to ", success.topic);
       }, session.log
-   );  
+    );  
     session.subscribe("com.google.guesswho.roundEnd", onRoundEnd).then(
       function(success){
          console.log("subscribed to ", success.topic);
       }, session.log
-   ); 
+    );
+    session.subscribe("com.google.guesswho.stateChange", onStateChange).then(
+      function(success){
+         console.log("subscribed to ", success.topic);
+      }, session.log
+    ); 
 }
 
 // now actually open the connection

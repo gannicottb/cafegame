@@ -39,7 +39,8 @@ var Backend = (function() {
       correct_answer: null,
       answers: [],
       number: -1,
-      end: 0
+      end: 0,
+      players_needed: MIN_PLAYERS_TO_START
     }
     //round_in_progress = false;
     //answers = [];
@@ -107,24 +108,27 @@ var Backend = (function() {
     switch(round.state){
       case states.WAIT:
         if(logged_in_users >= MIN_PLAYERS_TO_START){
+          // We have enough players to go to Prepare
           round.state = states.PREPARE;
+          // Set out a clear-able timeout to start the next round
           timeout_id = setTimeout(startNextRound, PREPARE_DURATION);
-        }else{
-          //maybe bundle in the number of players needed at this point only
-          result.players_needed = logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0
-        }
+          session.publish("com.google.guesswho.stateChange", [], round);
+        } else {
+          // We don't have enough players, so let's calculate how many more we need
+          round.players_needed = logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0
+        }        
         break;
       case states.PREPARE:
-        // do nothing
+        // do nothing for now
         break;
       case states.PROGRESS:
-        // bundle in what the mobile.js needs to join the game midround
+        // do nothing for now
         break;
     }
 
     result.round = round; // add the round to the result bundle
   
-    session.publish("com.google.guesswho.newLogin", [], {
+    session.publish("com.google.guesswho.newLogin", [], {      
       new_player: {
         id: user.id,
         name: user.name
@@ -155,7 +159,7 @@ var Backend = (function() {
     renderTimer(timeLeft(timeout));
 
     // Update the timer every second until the timer runs out
-    timer_interval = setInterval(function() {
+    var timer_interval = setInterval(function() {
       var time_left = timeLeft(timeout);
       if (time_left <= 0) {
         clearInterval(timer_interval);
@@ -260,11 +264,10 @@ var Backend = (function() {
   // Begin the round
   //
   var startNextRound = function() {
-    //if(round.state === states.PREPARE) return;
 
     // Increment (wrapping if at end of list) the round
     round.number = (round.number + 1) % guess_list.length;
-    //round_in_progress = true;
+
     round.state = states.PROGRESS;
 
     $('#round_number').html("Round" + round.number);
@@ -302,7 +305,9 @@ var Backend = (function() {
   //
   var onRoundOver = function(args, kwargs, details) {
     // round_in_progress = false;
-    round.state = states.PREPARE;
+    if(round.state === states.PROGRESS){
+      round.state = states.PREPARE;      
+    }
     round.end = 0;
 
     // Clear the timer
@@ -314,8 +319,13 @@ var Backend = (function() {
 
     session.publish('com.google.guesswho.roundEnd', [], round);
 
+    // If we still have enough players to play, then set a timeout to start a new round
     if(logged_in_users >= MIN_PLAYERS_TO_START){
       timeout_id = setTimeout(startNextRound, PREPARE_DURATION);
+    }else{
+      // otherwise, we go back to Wait and let everyone know that we're waiting for players
+      round.state = states.WAIT;
+      session.publish('com.google.guesswho.stateChange', [], round);
     }
   };
 
