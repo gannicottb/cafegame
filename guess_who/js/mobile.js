@@ -80,7 +80,7 @@ var Mobile = (function() {
     // Store the user object returned from the server  
     user = kwargs.user;
     console.log("user is logged in with uid " + Number(user.id) + ", and their score is " + user.score);
-    sessionStorage.setItem("id", user.id);
+    localStorage.setItem("id", user.id);
     // Store the round information returned from the server
     round = kwargs.round;
 
@@ -245,7 +245,7 @@ var Mobile = (function() {
 
     //Check to see if the device already has a user id
     //Note: needs to use localStorage for 'real' mobile testing
-    user.id = sessionStorage.getItem("id");
+    user.id = localStorage.getItem("id");
 
     //Log in to the server (and get auto-registered if no uid is present)
     //
