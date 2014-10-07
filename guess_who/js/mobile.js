@@ -143,8 +143,7 @@ var Mobile = (function() {
   // Handle round end
   var onRoundEnd = function(args, kwargs, details) {
     round = kwargs;
-    console.log("Round", round.number, "ended!");
-    
+    console.log("Round", round.number, "ended!");    
 
     //Populate the input body with only the correct button
     var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: [round.correct_answer]});
@@ -161,11 +160,6 @@ var Mobile = (function() {
 
   // Handle new login event
   // var onLogins = function(args, kwargs, details) {
-    
-  // };
-
-  //Handle entry into an existing round
-  // var onContinueOnThisRound = function(args, kwargs, details) {
     
   // };
 
@@ -280,14 +274,6 @@ var Mobile = (function() {
         console.log("subscribed to ", success.topic);
       }, session.log
     );
-
-    // Subscribe to Logins event
-    //
-    // session.subscribe("com.google.guesswho.newLogin", onLogins).then(
-    //   function(success) {
-    //     console.log("subscribed to ", success.topic);
-    //   }, session.log
-    // );
   };
 
   return {

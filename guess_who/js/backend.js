@@ -83,7 +83,7 @@ var Backend = (function() {
 
   // Login new and existing users
   var login = function(args, kwargs, details) {
-    var result;
+    var result = {};
 
     var uid = args[0]; //it's a string
     console.log("uid " + args[0] + " logging in");
@@ -123,24 +123,13 @@ var Backend = (function() {
     }
 
     result.round = round; // add the round to the result bundle
-
-    // if (round_in_progress == false && logged_in_users >= MIN_PLAYERS_TO_START) {
-    //   //Start the next round in 5 seconds
-    //   setTimeout(startNextRound, 5000);
-    // }
   
     session.publish("com.google.guesswho.newLogin", [], {
-      //players_needed: (logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0),
       new_player: {
         id: user.id,
         name: user.name
       }
     });     
-    
-    // if(round_in_progress && logged_in_users >= MIN_PLAYERS_TO_START)
-    // {  
-    //   continueOnThisRound();
-    // }
 
     return result;
   };
@@ -258,7 +247,7 @@ var Backend = (function() {
 
     if(round.state === states.PREPARE){
       if(logged_in_users < MIN_PLAYERS_TO_START){
-        round.state = states.WAITING;
+        round.state = states.WAIT;
         clearTimeout(timeout_id);
         session.publish("com.google.guesswho.stateChange", [], round);
       }
@@ -271,6 +260,8 @@ var Backend = (function() {
   // Begin the round
   //
   var startNextRound = function() {
+    //if(round.state === states.PREPARE) return;
+
     // Increment (wrapping if at end of list) the round
     round.number = (round.number + 1) % guess_list.length;
     //round_in_progress = true;
@@ -326,24 +317,8 @@ var Backend = (function() {
     if(logged_in_users >= MIN_PLAYERS_TO_START){
       timeout_id = setTimeout(startNextRound, PREPARE_DURATION);
     }
-
-    // if (round_in_progress === false && ) {
-    //   //Start the next round in 5 seconds
-    //   setTimeout(startNextRound, 5000);
-    // }
   };
 
-  //Player entered mid-round
-  // var continueOnThisRound = function(){
-  
-  //   //Publish the event 
-  //   session.publish("com.google.guesswho.continueOnThisRound", answers, {
-  //     correct_answer: correct_answer,
-  //     round: round,
-  //     round_end: round_end
-  //   });    
-
-  // }
 
   var main = function(autobahn_session) {
 
@@ -452,14 +427,16 @@ var Backend = (function() {
 
       round: function(){
         return round;
-      }
+      },
 
       setCorrectAnswer: function(correct){
-        correct_answer = correct;
+        round.correct_answer = correct;
       },
 
       roundInProgress: function(in_progress){
-        round_in_progress = in_progress;
+        if(in_progress){
+          round.state = states.PROGRESS;
+        }
       }
       
     }

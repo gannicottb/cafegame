@@ -38,7 +38,7 @@ var googleAppKey = {
   currentIndex: 0
 }
 
-var round = 0;
+var round_number;
 var keyword = "";
 
 var img = new Image();
@@ -189,12 +189,12 @@ function main(session){
 
     var onRoundStart = function(args, kwargs, details){
       // Update what round we're on
-      round = kwargs.round;      
+      round_number = kwargs.number;      
       // Get the keyword for this round
       keyword = kwargs.correct_answer.keyword;      
       
       // TODO: Use this to determine how many intervals to display
-      var round_end = kwargs.round_end;
+      var round_end = kwargs.end;
 
       // Load the image to start the round
       loadGoogleImage();
@@ -202,7 +202,7 @@ function main(session){
 
     var onRoundEnd = function(args, kwargs, details){
       //Assuming that the message isn't outdated
-      if(kwargs.round != round) return;
+      if(kwargs.number != round_number) return;
       //Skip to the end of the animation
       showAnswer();
       
