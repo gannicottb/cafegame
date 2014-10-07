@@ -202,6 +202,9 @@ function main(session){
       // TODO: Use this to determine how many intervals to display
       var round_end = kwargs.end;
 
+      // Clear out the status line
+      $("#status").html("");
+
       // Load the image to start the round
       loadGoogleImage();
     }
@@ -209,19 +212,28 @@ function main(session){
     var onRoundEnd = function(args, kwargs, details){
       //Assuming that the message isn't outdated
       if(kwargs.number != round_number) return;
+
+      switch(kwargs.state){
+        case states.WAIT:
+          $("#status").html("Waiting for "+kwargs.players_needed+" players to start next round");
+          break;
+        case states.PREPARE:
+          $("#status").html("Next round beginning in 5 seconds");
+          break; 
+      }
       //Skip to the end of the animation
       showAnswer();
       
     }
 
     var onStateChange = function(args, kwargs, details){
-      round_number = kwargs.number;
+      
       switch(kwargs.state){
         case states.WAIT:
-          $("#person_name").html("Waiting for "+kwargs.players_needed+" players to start next round");
+          $("#status").html("Waiting for "+kwargs.players_needed+" players to start next round");
           break;
         case states.PREPARE:
-          $("#person_name").append("Next round beginning in 5 seconds");
+          $("#status").append("Next round beginning in 5 seconds");
           break;       
       }
     }

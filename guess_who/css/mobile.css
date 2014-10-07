@@ -12,9 +12,11 @@ hr{
 
 .answer {
 	height: 100px;
-	width: 150px;
+	width: 150px;	
 	background-color: silver;
 	font-size: large;
+	display: inline-block;
+	vertical-align: middle;
 }
 
 #submit_name {

@@ -135,6 +135,10 @@ var Mobile = (function() {
   var onRoundStart = function(args, kwargs, details) {
     round = kwargs;
     console.log("Round", round.number, "starting!");
+
+    // clear out the score line
+    $('.round_score').html("");
+    
     //Populate the input body with buttons
     var buttons = new EJS({url: 'templates/buttons.ejs'}).render(round);
     input_body.html(buttons);
@@ -145,25 +149,32 @@ var Mobile = (function() {
   // Handle round end
   var onRoundEnd = function(args, kwargs, details) {
     round = kwargs;
-    console.log("Round", round.number, "ended!");    
+    console.log("Round", round.number, "ended!");
 
-    //Populate the input body with only the correct button
-    var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: [round.correct_answer]});
-    input_body.html(buttons);
+    switch(round.state){
+      case states.WAIT:
+        console.log("Round is waiting");
+        // Update the waiting message
+        var waiting = new EJS({url: 'templates/waiting.ejs'}).render(round);        
+        input_body.html(waiting);
+        break;
+      case states.PREPARE:
+        //Populate the input body with only the correct button
+        var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: [round.correct_answer]});
+        input_body.html(buttons);
 
-    // Disable the button and color it appropriately
-    var answer = input_body.find('.answer:first');
-    answer.prop('disabled', true);
-    answer.addClass('correct');
+        // Disable the button and color it appropriately
+        var answer = input_body.find('.answer:first');
+        answer.prop('disabled', true);
+        answer.addClass('correct');
 
-    // Clear the timer
-    setTimer(0);
+        // Clear the timer
+        $('.timer').html("");
+
+        break;      
+    }
+
   };
-
-  // Handle new login event
-  // var onLogins = function(args, kwargs, details) {
-    
-  // };
 
   var answerClick = function(event){
     // Disable all buttons in the input_body
@@ -180,6 +191,8 @@ var Mobile = (function() {
       function(success) {
         clicked_button.addClass(success.correct ? 'correct' : 'incorrect');
         // TODO: Display the score in some nice way
+
+        $('.round_score').html("*"+success.score+"*");
 
         // Update the score
         user.score += success.score

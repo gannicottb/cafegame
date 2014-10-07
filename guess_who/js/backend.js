@@ -110,8 +110,9 @@ var Backend = (function() {
         if(logged_in_users >= MIN_PLAYERS_TO_START){
           // We have enough players to go to Prepare
           round.state = states.PREPARE;
-          // Set out a clear-able timeout to start the next round
+          // Set a clear-able timeout to start the next round
           timeout_id = setTimeout(startNextRound, PREPARE_DURATION);
+          // Tell everyone that the round is about to begin
           session.publish("com.google.guesswho.stateChange", [], round);
         } else {
           // We don't have enough players, so let's calculate how many more we need
@@ -247,7 +248,7 @@ var Backend = (function() {
     var user = lookup(args[0]);
     user.logged_in = false;
     var logout_msg = 'User ' + user.name + ' has logged out!';    
-    logged_in_users = getLoggedInUsers();
+    logged_in_users = getLoggedInUsers().length;
 
     if(round.state === states.PREPARE){
       if(logged_in_users < MIN_PLAYERS_TO_START){
@@ -317,7 +318,6 @@ var Backend = (function() {
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display
 
-    session.publish('com.google.guesswho.roundEnd', [], round);
 
     // If we still have enough players to play, then set a timeout to start a new round
     if(logged_in_users >= MIN_PLAYERS_TO_START){
@@ -325,8 +325,8 @@ var Backend = (function() {
     }else{
       // otherwise, we go back to Wait and let everyone know that we're waiting for players
       round.state = states.WAIT;
-      session.publish('com.google.guesswho.stateChange', [], round);
     }
+    session.publish('com.google.guesswho.roundEnd', [], round);
   };
 
 
