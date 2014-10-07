@@ -51,6 +51,11 @@ var Mobile = (function() {
       return Math.floor((timeout - now.getTime()) / 1000);
     }
     var renderTimer = function(time_left) {
+      if (time_left <= 0) {
+        clearInterval(timer_interval);
+        timer_interval = null;
+        time_left = 0;
+      }
       var timer = new EJS({
         url: 'templates/timer.ejs'
       }).render({
@@ -60,15 +65,9 @@ var Mobile = (function() {
     }
 
     renderTimer(timeLeft(timeout));
-
     // Update the timer every second until the timer runs out
-    var timer_interval = setInterval(function() {
-      var time_left = timeLeft(timeout);
-      if (time_left <= 0) {
-        clearInterval(timer_interval);
-        timer_interval = null;
-        time_left = 0;
-      }
+    timer_interval = setInterval(function() {
+      var time_left = timeLeft(timeout);      
       renderTimer(time_left);
     }, 1000);
   };
@@ -138,7 +137,7 @@ var Mobile = (function() {
 
     // clear out the score line
     $('.round_score').html("");
-    
+
     //Populate the input body with buttons
     var buttons = new EJS({url: 'templates/buttons.ejs'}).render(round);
     input_body.html(buttons);
@@ -170,6 +169,7 @@ var Mobile = (function() {
 
         // Clear the timer
         $('.timer').html("");
+        clearInterval(timer_interval);
 
         break;      
     }

@@ -135,6 +135,7 @@ function main(session){
 
     var intervalId;
 
+
     function guessStart() {
       $("#person_name").html("NAME THAT PERSON!");
       console.log("Guess start");
@@ -154,14 +155,15 @@ function main(session){
 
       intervalId = setInterval(nextPixelate, 5000)
 
-      function showAnswer() {
-        clearInterval(intervalId);
-        intervalId = undefined;
-        pixelate(100); // show origin image
-        console.log("Round Over! Show Answer: XXXX");
-      
-        $("#person_name").html("ANSWER: " + keyword);
-      }
+    }
+    
+    function showAnswer() {
+      clearInterval(intervalId);
+      intervalId = undefined;
+      pixelate(100); // show origin image
+      console.log("Round Over! Show Answer: XXXX");
+    
+      $("#person_name").html("ANSWER: " + keyword);
     }
 
     function imgError(event) {

@@ -11,6 +11,7 @@ var Backend = (function() {
   var correct_answer, guess_list, round_in_progress, answers;
   var uid_counter, users, logged_in_users, timeout_id;
   var round, round_end;
+  var timer_interval;
 
   var init = function(){
     NUMBER_OF_ANSWERS = 4;
@@ -146,6 +147,11 @@ var Backend = (function() {
       return Math.floor((timeout - now.getTime()) / 1000);
     }
     var renderTimer = function(time_left) {
+      if (time_left <= 0) {
+        clearInterval(timer_interval);
+        timer_interval = null;
+        time_left = 0;
+      }
       var timer = new EJS({
         url: 'templates/timer.ejs'
       }).render({
@@ -154,17 +160,11 @@ var Backend = (function() {
       $('.timer').html(timer);
     }
 
+    //First, render the timer with timeout
     renderTimer(timeLeft(timeout));
-
     // Update the timer every second until the timer runs out
-    var timer_interval = setInterval(function() {
-      var time_left = timeLeft(timeout);
-      if (time_left <= 0) {
-        clearInterval(timer_interval);
-        timer_interval = null;
-        time_left = 0;
-      }
-      renderTimer(time_left);
+    timer_interval = setInterval(function() {     
+      renderTimer(timeLeft(timeout));
     }, 1000);
   };  
 
@@ -232,10 +232,11 @@ var Backend = (function() {
     })
 
     // End the round early - good feature, but it causes problems
-    // if(round.submitted_guesses === logged_in_users){
-    //   clearTimeout(timeout_id);
-    //   onRoundOver();
-    // }
+    //
+    if(round.submitted_guesses === logged_in_users){
+      clearTimeout(timeout_id);
+      onRoundOver();
+    }
 
     // Return their score for the round
     result = {
@@ -298,7 +299,7 @@ var Backend = (function() {
     //Set the alarm
     round.end = new Date().getTime() + ROUND_DURATION;
 
-    setTimeout(onRoundOver, ROUND_DURATION);
+    timeout_id = setTimeout(onRoundOver, ROUND_DURATION);
 
     //Display Timer
     setTimer(round.end);
@@ -318,7 +319,10 @@ var Backend = (function() {
     round.end = 0;
 
     // Clear the timer
-    setTimer(0);
+    clearInterval(timer_interval);
+    var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: 0});
+    $('.timer').html(timer);
+    //setTimer(0);
     
     //TODO:
     // Grab the top X highest scoring players and put their info into an object
