@@ -1,4 +1,4 @@
 <h2>Leaderboard</h2>
 <% for(var i = 0; i < leaders.length; i++) {%>
-	<li class="leader_board" value=<%= leaders[i].id %>><%= leaders[i].name %></li>
+	<li class="leader_board" value=<%= leaders[i].id %>><%= leaders[i].name %>: <%= leaders[i].score %></li>
 <% } %>
