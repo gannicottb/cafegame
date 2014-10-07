@@ -220,7 +220,7 @@ var Backend = (function() {
 
     if (correct) { // If you didn't get it right, you get a score of 0 (maybe some very small number just for playing?)
       var time_left = Math.floor((round.end - kwargs.time)); // in ms
-      score = ((time_left / ROUND_DURATION) * 5) | 0; // Max score is 5.   
+      score = Math.round(time_left/1000) * 10;  //Score = number of seconds left * 10
     }
 
     user.score += score;
