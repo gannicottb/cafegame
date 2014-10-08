@@ -11,7 +11,7 @@ var Backend = (function() {
   var correct_answer, guess_list, round_in_progress, answers;
   var uid_counter, users, logged_in_users, timeout_id;
   var round, round_end;
-  var timer_interval;
+  
 
   var init = function(){
     NUMBER_OF_ANSWERS = 4;
@@ -139,38 +139,6 @@ var Backend = (function() {
     return result;
   };
 
-  //set the value of the timer
-  setTimer = function(timeout) {
-    var timeLeft = function(timeout) {
-      var now = new Date();
-      // if we set a timer with a negative or zero time, simply set it to now
-      if (timeout <= 0) timeout = now.getTime();
-      // that way, timeLeft returns 0s instead of a huge negative number
-      return Math.floor((timeout - now.getTime()) / 1000);
-    }
-    var renderTimer = function(time_left) {
-      if (time_left <= 0) {
-        clearInterval(timer_interval);
-        timer_interval = null;
-        time_left = 0;
-      }
-      var timer = new EJS({
-        url: 'templates/timer.ejs'
-      }).render({
-        time_left: time_left
-      });
-      $('.timer').html(timer);
-    }
-
-    //First, render the timer with timeout
-    renderTimer(timeLeft(timeout));
-    // Update the timer every second until the timer runs out
-    timer_interval = setInterval(function() {     
-      renderTimer(timeLeft(timeout));
-    }, 1000);
-  };  
-
-
   // Register new devices
   //
   var register = function() {
@@ -233,7 +201,7 @@ var Backend = (function() {
       correct: correct
     })
 
-    // End the round early - good feature, but it causes problems
+    // End the round early if everyone has guessed
     //
     if(round.submitted_guesses === logged_in_users){
       clearTimeout(timeout_id);
@@ -258,31 +226,28 @@ var Backend = (function() {
     var logout_msg = 'User ' + user.name + ' has logged out!';    
     logged_in_users = getLoggedInUsers().length;
 
-    if(round.state === states.PREPARE){
-      if(logged_in_users < MIN_PLAYERS_TO_START){
-        round.state = states.WAIT;
-        clearTimeout(timeout_id);
+    if(round.state === states.PREPARE && logged_in_users < MIN_PLAYERS_TO_START){
+        round.state = states.WAIT; // backend is now waiting
+        clearTimeout(timeout_id); // clear future events
         session.publish("com.google.guesswho.stateChange", [], round);
       }
-    }
+    
 
     console.log(logout_msg);
-    return logout_msg;
+    //return logout_msg;
   };
 
   // Begin the round
   //
   var startNextRound = function() {
 
-    // Increment (wrapping if at end of list) the round
-    round.number = (round.number + 1) % guess_list.length;
-
+    // Round now in progress
     round.state = states.PROGRESS;
 
-    $('#round_number').html("Round" + round.number);
+    // Increment (wrapping if at end of list) the round number
+    round.number = (round.number + 1) % guess_list.length;
 
     //Pick the keyword for the round, save the id
-    //correct_id = guess_list[round].id;
     round.correct_answer = guess_list[round.number];
 
     //Generate the answers
@@ -303,8 +268,8 @@ var Backend = (function() {
 
     timeout_id = setTimeout(onRoundOver, ROUND_DURATION);
 
-    //Display Timer
-    setTimer(round.end);
+    // //Display Timer
+    // setTimer(round.end);
 
     //Publish the roundStart event (everyone wants to know)
     session.publish("com.google.guesswho.roundStart", [], round);
@@ -320,10 +285,7 @@ var Backend = (function() {
     }
     round.end = 0;
 
-    // Clear the timer
-    clearInterval(timer_interval);
-    var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: 0});
-    $('.timer').html(timer);
+    
     //setTimer(0);
     
     //TODO:
