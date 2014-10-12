@@ -25,7 +25,6 @@ var Mobile = (function() {
     input_body = $('#input_body');
     name_container = $('.name_container');
     round = null;
-    //round_in_progress = false;
     timer_interval = null;
   }
 
@@ -35,41 +34,9 @@ var Mobile = (function() {
     // update user name
     user.name = new_name;
     // render user name in the name container
-    //
     name_container.html(new EJS({
       url: 'templates/user_name.ejs'
     }).render(user));
-  };
-
-  //set the value of the timer
-  var setTimer = function(timeout) {
-    var timeLeft = function(timeout) {
-      var now = new Date();
-      // if we set a timer with a negative or zero time, simply set it to now
-      if (timeout <= 0) timeout = now.getTime();
-      // that way, timeLeft returns 0s instead of a huge negative number
-      return Math.floor((timeout - now.getTime()) / 1000);
-    }
-    var renderTimer = function(time_left) {
-      if (time_left <= 0) {
-        clearInterval(timer_interval);
-        timer_interval = null;
-        time_left = 0;
-      }
-      var timer = new EJS({
-        url: 'templates/timer.ejs'
-      }).render({
-        time_left: time_left
-      });
-      $('.timer').html(timer);
-    }
-
-    renderTimer(timeLeft(timeout));
-    // Update the timer every second until the timer runs out
-    timer_interval = setInterval(function() {
-      var time_left = timeLeft(timeout);      
-      renderTimer(time_left);
-    }, 1000);
   };
 
   var logout = function() {
@@ -80,7 +47,7 @@ var Mobile = (function() {
     // Store the user object returned from the server  
     user = kwargs.user;
     console.log("user is logged in with uid " + Number(user.id) + ", and their score is " + user.score);
-    localStorage.setItem("id", user.id);
+    sessionStorage.setItem("id", user.id);
     // Store the round information returned from the server
     round = kwargs.round;
 
@@ -97,7 +64,7 @@ var Mobile = (function() {
         });
         input_body.html(buttons);
 
-        setTimer(round.end);
+        timer_interval = GuessWho.setTimer($('.timer'), round.end);
         break;
       case states.WAIT:
         // Update the waiting message
@@ -111,7 +78,6 @@ var Mobile = (function() {
   }
 
   //Generic state change handling
-  //could handle round start and end, honestly
   //
   var onStateChange = function(args, kwargs, details){
     round = kwargs;
@@ -142,7 +108,7 @@ var Mobile = (function() {
     var buttons = new EJS({url: 'templates/buttons.ejs'}).render(round);
     input_body.html(buttons);
 
-    setTimer(round.end);
+    timer_interval = GuessWho.setTimer($('.timer'), round.end);
   };
 
   // Handle round end
@@ -168,8 +134,7 @@ var Mobile = (function() {
         answer.addClass('correct');
 
         // Clear the timer
-        $('.timer').html("");
-        clearInterval(timer_interval);
+        GuessWho.clearTimer($('.timer'), timer_interval);
 
         break;      
     }
@@ -244,8 +209,8 @@ var Mobile = (function() {
     $(window).on('beforeunload', logout );
 
     //Check to see if the device already has a user id
-    //Note: needs to use localStorage for 'real' mobile testing
-    user.id = localStorage.getItem("id");
+    //Note: needs to use sessionStorage for 'real' mobile testing
+    user.id = sessionStorage.getItem("id");
 
     //Log in to the server (and get auto-registered if no uid is present)
     //

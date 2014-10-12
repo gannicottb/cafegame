@@ -29,6 +29,12 @@ var GuessWho = {
     return timer_interval;
 	},
 
+  clearTimer: function(selector, timer_id){
+    clearInterval(timer_id);
+    var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: 0});
+    selector.html(timer);
+  },
+
 	states: {
 	  WAIT: 0,
     PREPARE: 1,
