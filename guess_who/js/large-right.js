@@ -215,38 +215,12 @@ function main(session) {
   };
 
   //Display leader board on round end
-  var onRoundEnd = function(args, kwargs, details){
-     
-    session.call("com.google.guesswho.getLoggedInUsers").then(
-       function(success){
-        
-          loggedInUsers=success;  
+  var onRoundEnd = function(args, kwargs, details){     
 
-          if(loggedInUsers.length > 0)
-          {
+    var leader_board_body = $('#leader_board_body');
+    var leaders = new EJS({url: 'templates/leader_board.ejs'}).render({leaders: args});
+    leader_board_body.html(leaders);
 
-            //Sort logged in users based on score
-            loggedInUsers.sort(function(a,b){
-              if(b.score > a.score){
-                return 1;
-              }
-              if(b.score < a.score){
-                return -1;
-              }
-              return 0;
-            });
-
-            var leader_board_body = $('#leader_board_body');
-            var leaders = new EJS({url: 'templates/leader_board.ejs'}).render({leaders: loggedInUsers});
-            leader_board_body.html(leaders);
-          }            
-       },
-       function(error){
-          session.log();
-          //retry
-       }
-
-    ); 
   }
 
   // Subscribe to New Guess event

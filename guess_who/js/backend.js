@@ -300,7 +300,36 @@ var Backend = (function() {
       // otherwise, we go back to Wait and let everyone know that we're waiting for players
       round.state = states.WAIT;
     }
-    session.publish('com.google.guesswho.roundEnd', [], round);
+
+
+    //Leaderboard logic (construct array of users in descending order of their scores)
+    var leaders = users;
+
+    //(Logic  needs to be enhanced ---- )
+    
+    if(leaders.length > 0)
+    {
+        //Sort logged in users based on score
+        leaders.sort(function(a,b){
+          if(b.score > a.score){
+            return 1;
+          }
+          if(b.score < a.score){
+            return -1;
+          }
+          return 0;
+        });
+    }
+
+    var top_5_leaders;
+
+    if(leaders.length > 5)
+      top_5_leaders = leaders.slice(0,5);
+    else
+      top_5_leaders = leaders;
+
+    session.publish('com.google.guesswho.roundEnd', top_5_leaders, round);
+
   };
 
 
