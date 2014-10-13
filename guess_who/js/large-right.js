@@ -26,8 +26,9 @@ var loadQRCode = function(){
         if (newAddr in addrs) return;
         else addrs[newAddr] = true;
         var displayAddrs = Object.keys(addrs).filter(function (k) { return addrs[k]; });
-        // document.getElementById('list').textContent = displayAddrs.join(" or perhaps ") || "n/a";
-        qrcode.makeCode("http://"+displayAddrs[0]+":8080/mobile.html");
+        var link = "http://"+displayAddrs[0]+":8080/mobile.html"
+        $("#link_text").html(link);
+        qrcode.makeCode(link);
     }
 
     function grepSDP(sdp) {       

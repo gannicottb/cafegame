@@ -64,6 +64,13 @@ header {
   bottom: 5px;
 }
 
+#link_text
+{
+  position: fixed;
+  left: 5px;
+  bottom: 5px;
+}
+
 #demo_title
 {
    font-size: 27px;
