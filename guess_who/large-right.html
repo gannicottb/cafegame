@@ -10,8 +10,10 @@
    <link rel="stylesheet" href="css/guess.css">
    <script type="text/javascript" src="js/ejs_production.js"></script>
    <!--<link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">-->
+   <!-- We already have jquery included, duplicate includes are bad -->
    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
    <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+   <script type="text/javascript" src="js/qrcode.min.js"></script>
    <script src="js/large-right.js"></script>
 
    <link rel="stylesheet" href="css/guesswho.css">
@@ -26,7 +28,10 @@
    <div id="leader_board_body">
       <ol class="leader_board">
       </ol>      
-   </div>     
+   </div>  
+
+   <div id="qr_code"></div>
+
 
    <script>AUTOBAHN_DEBUG = true;</script>
 

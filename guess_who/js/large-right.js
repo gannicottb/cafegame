@@ -31,6 +31,17 @@ function main(session) {
   //Display all logged in users
   //showAllLoggedInUsers();
 
+  //Display the QR code
+  new QRCode($("#qr_code")[0], {
+      text: 'http://10.0.0.11:8080/mobile.html',
+      width: 256,
+      height: 256,
+      colorDark : "#000000",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.H
+    }
+  );
+
   var printGuesses = function(guesses) {
     //Create a list item
     var list = document.createElement('ul');

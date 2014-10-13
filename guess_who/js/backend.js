@@ -305,6 +305,10 @@ var Backend = (function() {
 
 
   var main = function(autobahn_session) {
+    
+    // auto resize iframes
+    $('.demo_window').height($(window).height() - 50);
+    $('.demo_window').width($(window).width()/2 - 25);
 
     session = autobahn_session;
     //Get the curated list of people
