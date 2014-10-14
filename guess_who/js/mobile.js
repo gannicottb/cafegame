@@ -75,6 +75,8 @@ var Mobile = (function() {
         input_body.html("Preparing for next round in 5 seconds");
         break;      
     }
+
+    //alertify.success("Logged in!");
   }
 
   //Generic state change handling
@@ -139,6 +141,32 @@ var Mobile = (function() {
         break;      
     }
 
+  };
+
+  var onConfirm = function(args, kwargs, details){
+    if (Number(user.id) != Number(args[0])){
+      return; // not for us!
+    }
+    alertify.set({ labels: {
+        ok     : "Yes!",
+        cancel : "No"
+    } });
+
+    alertify.confirm("Are you still playing?", function (e) {
+      if (e) {
+          // user clicked "ok"
+          session.call("com.google.guesswho.login", [user.id]).then(
+            loginSuccess,
+            function(error) {
+              console.log("login failed", error);
+            }
+          );
+
+      } else {
+          // user clicked "cancel"
+          logout();
+      }
+  });
   };
 
   var answerClick = function(event){
@@ -250,6 +278,14 @@ var Mobile = (function() {
     // Subscribe to State Change event
     //
     session.subscribe("com.google.guesswho.stateChange", onStateChange).then(
+      function(success) {
+        console.log("subscribed to ", success.topic);
+      }, session.log
+    );
+
+    // Subscribe to Idle User Confirm event
+    //
+    session.subscribe("com.google.guesswho.confirm", onConfirm).then(
       function(success) {
         console.log("subscribed to ", success.topic);
       }, session.log

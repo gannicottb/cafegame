@@ -9,23 +9,23 @@ var Backend = (function() {
   // Members
   var session;
   var correct_answer, guess_list, round_in_progress, answers;
-  var uid_counter, users, logged_in_users, timeout_id;
+  var uid_counter, users, logged_in_users, round_timer;
   var round, round_end;
   
 
   var init = function(){
     NUMBER_OF_ANSWERS = 4;
-    ROUND_DURATION = 20000; // in ms
-    MIN_PLAYERS_TO_START = 2; //set to 2 for DEBUG
+    ROUND_DURATION = 5000; // in ms
+    MIN_PLAYERS_TO_START = 1; //set to 2 for DEBUG
     PREPARE_DURATION = 5000; // in ms
+    IDLE_THRESHOLD = 1;
 
     // Members
     session;
-    //correct_answer = null;
     uid_counter = 0;
     users = [];
     logged_in_users = 0;
-    timeout_id = null;
+    round_timer = null;
     
     guess_list = [];
     
@@ -97,12 +97,13 @@ var Backend = (function() {
     // Log them in
     var logged_back_in = user.logged_in;
     user.logged_in = true;
+    user.idle = {this_round: false, count: 0}
 
     console.log("User " + user.name + " is logged in.");
 
     result.user = user; // add the user to the result bundle
 
-    logged_in_users = getLoggedInUsers().length;
+    logged_in_users = getLoggedInUsers().length; // cache the number of logged in users
 
     switch(round.state){
       case states.WAIT:
@@ -110,7 +111,7 @@ var Backend = (function() {
           // We have enough players to go to Prepare
           round.state = states.PREPARE;
           // Set a clear-able timeout to start the next round
-          timeout_id = setTimeout(startNextRound, PREPARE_DURATION);
+          round_timer = setTimeout(startNextRound, PREPARE_DURATION);
           // Tell everyone that the round is about to begin
           session.publish("com.google.guesswho.stateChange", [], round);
         } else {
@@ -146,7 +147,8 @@ var Backend = (function() {
       id: uid_counter,
       name: "guest" + uid_counter,
       logged_in: false,
-      score: 0
+      score: 0,
+      idle: {this_round: true, count: 0}
     };
     return uid_counter++;
   };
@@ -179,6 +181,9 @@ var Backend = (function() {
 
     verify(user);
 
+    // This user is not idle this round, and their idle count is reset
+    user.idle = {this_round: false, count: 0}
+
     round.submitted_guesses++;
 
     // Is the guess correct?
@@ -204,7 +209,7 @@ var Backend = (function() {
     // End the round early if everyone has guessed
     //
     if(round.submitted_guesses === logged_in_users){
-      clearTimeout(timeout_id);
+      clearTimeout(round_timer);
       onRoundOver();
     }
 
@@ -228,13 +233,11 @@ var Backend = (function() {
 
     if(round.state === states.PREPARE && logged_in_users < MIN_PLAYERS_TO_START){
         round.state = states.WAIT; // backend is now waiting
-        clearTimeout(timeout_id); // clear future events
+        clearTimeout(round_timer); // clear future events
         session.publish("com.google.guesswho.stateChange", [], round);
-      }
-    
+    }
 
     console.log(logout_msg);
-    //return logout_msg;
   };
 
   // Begin the round
@@ -246,6 +249,11 @@ var Backend = (function() {
 
     // Increment (wrapping if at end of list) the round number
     round.number = (round.number + 1) % guess_list.length;
+
+    // All users are considered idle until they answer during a round
+    users.map(function(user){
+      user.idle.this_round = true
+    })
 
     //Pick the keyword for the round, save the id
     round.correct_answer = guess_list[round.number];
@@ -266,10 +274,7 @@ var Backend = (function() {
     //Set the alarm
     round.end = new Date().getTime() + ROUND_DURATION;
 
-    timeout_id = setTimeout(onRoundOver, ROUND_DURATION);
-
-    // //Display Timer
-    // setTimer(round.end);
+    round_timer = setTimeout(onRoundOver, ROUND_DURATION);
 
     //Publish the roundStart event (everyone wants to know)
     session.publish("com.google.guesswho.roundStart", [], round);
@@ -278,39 +283,54 @@ var Backend = (function() {
   // When the round timeout is reached
   //
   var onRoundOver = function(args, kwargs, details) {
-    round.submitted_guesses = 0;
+    round.submitted_guesses = 0; //clear the submitted_guesses count
+    round.end = 0; // clear the round end time
     
     if(round.state === states.PROGRESS){
       round.state = states.PREPARE;      
     }
-    round.end = 0;
-
-    
-    //setTimer(0);
     
     //TODO:
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display
 
+    // For all idle users, increment their consecutive idle round count
+    users.filter(function(user){
+      return user.idle.this_round
+    }).map(function(idle_user){
+      idle_user.idle.count += 1
+      if (idle_user.idle.count == IDLE_THRESHOLD){
+        //TODO: if they have been idle for X rounds, ask them to confirm that they still want to play
+        //sendWakeupMessage(idle_user); //
+        session.publish('com.google.guesswho.confirm', [idle_user.id]);
+      }
+      else if (idle_user.idle.count > IDLE_THRESHOLD){
+        // they get one round to confirm, then we log them out
+        session.publish('com.google.guesswho.logout', [idle_user.id])
+        onLogout([idle_user.id]); // call onLogout manually because publishers don't listen to themselves, apparently
+      }
+    });
 
     // If we still have enough players to play, then set a timeout to start a new round
     if(logged_in_users >= MIN_PLAYERS_TO_START){
-      timeout_id = setTimeout(startNextRound, PREPARE_DURATION);
+      round_timer = setTimeout(startNextRound, PREPARE_DURATION);
     }else{
       // otherwise, we go back to Wait and let everyone know that we're waiting for players
       round.state = states.WAIT;
     }
+
+    // The round is now officially over
     session.publish('com.google.guesswho.roundEnd', [], round);
   };
 
 
   var main = function(autobahn_session) {
-    
+    session = autobahn_session;
+
     // auto resize iframes
     $('.demo_window').height($(window).height() - 50);
     $('.demo_window').width($(window).width()/2 - 25);
 
-    session = autobahn_session;
     //Get the curated list of people
     //
     $.get('http://localhost:8080/guesslist.txt', function(myContentFile) {

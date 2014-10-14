@@ -39,6 +39,11 @@ com.google.guesswho.newGuess
 	a new guess has been processed and published
 	{int id, int round, bool correct}
 
+com.google.guesswho.confirm
+	backend -> mobile
+	the mobile client with id == idle_id should confirm that they still want to play
+	id
+
 RPC
 -----------------------------------------------
 
