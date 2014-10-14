@@ -16,9 +16,9 @@ var Backend = (function() {
   var init = function(){
     NUMBER_OF_ANSWERS = 4;
     ROUND_DURATION = 5000; // in ms
-    MIN_PLAYERS_TO_START = 1; //set to 2 for DEBUG
-    PREPARE_DURATION = 5000; // in ms
-    IDLE_THRESHOLD = 1;
+    MIN_PLAYERS_TO_START = 2; //set to 2 for DEBUG
+    PREPARE_DURATION = 20000; // in ms
+    IDLE_THRESHOLD = 2;
 
     // Members
     session;

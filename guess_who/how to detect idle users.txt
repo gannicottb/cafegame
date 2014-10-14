@@ -1,0 +1,50 @@
+how to detect idle users
+
+a user that has not answered for X consecutive rounds is considered to be idle
+
+
+how do we know if they have answered?
+submitGuess is the obvious place in the code to detect
+
+we only care about consecutive answers
+
+
+- keep track of their answers since logging in
+- count how many rounds in a row that they have not answered
+- add an Object to each user to track flags for each round that they have played?
+
+onRoundStart -> set all users.answered = false
+onGuess -> set user.answered = true, user.idle = 0
+onRoundEnd -> all users with answered = false increment idle. if idle == threshold, send wakeup message. if idle > threshold, log them out
+
+user.idle = {this_round: false, count: 0}
+
+startNextRound{
+	...
+	users.map(function(user){
+		user.idle.this_round = true
+	})
+	...
+}
+
+submitGuess{
+	...
+	user.idle = {this_round: false, count: 0}
+	...
+}
+
+onRoundEnd{
+	...
+	users.filter(function(user){
+		return user.idle.this_round
+	}).map(function(idle_user){
+		idle_user.idle.count += 1
+		if (idle_user.idle.count == THRESHOLD){
+			sendWakeupMessage(idle_user);
+		}
+		else if (idle_user.idle.count > THRESHOLD){
+			onLogout([idle_user.id], {});
+		}
+	});
+	...
+}
