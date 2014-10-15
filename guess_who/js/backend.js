@@ -334,25 +334,15 @@ var Backend = (function() {
     $('.demo_window').height($(window).height() - 50);
     $('.demo_window').width($(window).width()/2 - 25);
 
-    // grab URL params from the browser
-    //url_params = {};
+    // grab URL params from the browser and set config variables
     location.search.slice(1).split('&').map(function(str){
       var pair = str.split('=');
-      var key = pair[0]
-      var value = pair[1]
-      //url_params[pair[0]] = pair[1];      
+      var key = pair[0];
+      var value = pair[1];
       if (config.hasOwnProperty(key)){
         config[key] = value[value.length-1] == 's' ? Number(value.substr(0,value.length-1)) * 1000 : Number(value)
       }
     });
-
-    // Set the values based on the params
-
-    // NUMBER_OF_ANSWERS = 4;
-    // ROUND_DURATION = 20000; // in ms
-    // MIN_PLAYERS_TO_START = 2; //set to 2 for DEBUG
-    // PREPARE_DURATION = 5000; // in ms
-    // IDLE_THRESHOLD = 2;
 
     //Get the curated list of people
     //
