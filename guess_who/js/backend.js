@@ -14,11 +14,14 @@ var Backend = (function() {
   
 
   var init = function(){
-    NUMBER_OF_ANSWERS = 4;
-    ROUND_DURATION = 20000; // in ms
-    MIN_PLAYERS_TO_START = 2; //set to 2 for DEBUG
-    PREPARE_DURATION = 5000; // in ms
-    IDLE_THRESHOLD = 2;
+
+    config = {
+      NUMBER_OF_ANSWERS: 4,
+      ROUND_DURATION: 20000, // in ms
+      MIN_PLAYERS_TO_START: 2, //set to 2 for DEBUG
+      PREPARE_DURATION: 5000, // in ms
+      IDLE_THRESHOLD: 2      
+    }
 
     // Members
     session;
@@ -107,16 +110,16 @@ var Backend = (function() {
 
     switch(round.state){
       case states.WAIT:
-        if(logged_in_users >= MIN_PLAYERS_TO_START){
+        if(logged_in_users >= config.MIN_PLAYERS_TO_START){
           // We have enough players to go to Prepare
           round.state = states.PREPARE;
           // Set a clear-able timeout to start the next round
-          round_timer = setTimeout(startNextRound, PREPARE_DURATION);
+          round_timer = setTimeout(startNextRound, config.PREPARE_DURATION);
           // Tell everyone that the round is about to begin
           session.publish("com.google.guesswho.stateChange", [], round);
         } else {
           // We don't have enough players, so let's calculate how many more we need
-          round.players_needed = logged_in_users < MIN_PLAYERS_TO_START ? MIN_PLAYERS_TO_START - logged_in_users : 0
+          round.players_needed = logged_in_users < config.MIN_PLAYERS_TO_START ? config.MIN_PLAYERS_TO_START - logged_in_users : 0
         }        
         break;
       case states.PREPARE:
@@ -231,7 +234,7 @@ var Backend = (function() {
     var logout_msg = 'User ' + user.name + ' has logged out!';    
     logged_in_users = getLoggedInUsers().length;
 
-    if(round.state === states.PREPARE && logged_in_users < MIN_PLAYERS_TO_START){
+    if(round.state === states.PREPARE && logged_in_users < config.MIN_PLAYERS_TO_START){
         round.state = states.WAIT; // backend is now waiting
         clearTimeout(round_timer); // clear future events
         session.publish("com.google.guesswho.stateChange", [], round);
@@ -267,14 +270,14 @@ var Backend = (function() {
     //load in the correct answer
     round.answers[0] = round.correct_answer;
     // concatenate a slice of more possible answers to the array
-    round.answers = round.answers.concat(potentialAnswers.slice(0, NUMBER_OF_ANSWERS - 1));
+    round.answers = round.answers.concat(potentialAnswers.slice(0, config.NUMBER_OF_ANSWERS - 1));
     // randomize the answer choices
     shuffle(round.answers);
 
     //Set the alarm
-    round.end = new Date().getTime() + ROUND_DURATION;
+    round.end = new Date().getTime() + config.ROUND_DURATION;
 
-    round_timer = setTimeout(onRoundOver, ROUND_DURATION);
+    round_timer = setTimeout(onRoundOver, config.ROUND_DURATION);
 
     //Publish the roundStart event (everyone wants to know)
     session.publish("com.google.guesswho.roundStart", [], round);
@@ -299,12 +302,12 @@ var Backend = (function() {
       return user.idle.this_round
     }).map(function(idle_user){
       idle_user.idle.count += 1
-      if (idle_user.idle.count == IDLE_THRESHOLD){
+      if (idle_user.idle.count == config.IDLE_THRESHOLD){
         //TODO: if they have been idle for X rounds, ask them to confirm that they still want to play
         //sendWakeupMessage(idle_user); //
         session.publish('com.google.guesswho.confirm', [idle_user.id]);
       }
-      else if (idle_user.idle.count > IDLE_THRESHOLD){
+      else if (idle_user.idle.count > config.IDLE_THRESHOLD){
         // they get one round to confirm, then we log them out
         session.publish('com.google.guesswho.logout', [idle_user.id])
         onLogout([idle_user.id]); // call onLogout manually because publishers don't listen to themselves, apparently
@@ -312,8 +315,8 @@ var Backend = (function() {
     });
 
     // If we still have enough players to play, then set a timeout to start a new round
-    if(logged_in_users >= MIN_PLAYERS_TO_START){
-      round_timer = setTimeout(startNextRound, PREPARE_DURATION);
+    if(logged_in_users >= config.MIN_PLAYERS_TO_START){
+      round_timer = setTimeout(startNextRound, config.PREPARE_DURATION);
     }else{
       // otherwise, we go back to Wait and let everyone know that we're waiting for players
       round.state = states.WAIT;
@@ -330,6 +333,26 @@ var Backend = (function() {
     // auto resize iframes
     $('.demo_window').height($(window).height() - 50);
     $('.demo_window').width($(window).width()/2 - 25);
+
+    // grab URL params from the browser
+    //url_params = {};
+    location.search.slice(1).split('&').map(function(str){
+      var pair = str.split('=');
+      var key = pair[0]
+      var value = pair[1]
+      //url_params[pair[0]] = pair[1];      
+      if (config.hasOwnProperty(key)){
+        config[key] = value[value.length-1] == 's' ? Number(value.substr(0,value.length-1)) * 1000 : Number(value)
+      }
+    });
+
+    // Set the values based on the params
+
+    // NUMBER_OF_ANSWERS = 4;
+    // ROUND_DURATION = 20000; // in ms
+    // MIN_PLAYERS_TO_START = 2; //set to 2 for DEBUG
+    // PREPARE_DURATION = 5000; // in ms
+    // IDLE_THRESHOLD = 2;
 
     //Get the curated list of people
     //
@@ -426,6 +449,10 @@ var Backend = (function() {
       // Open the connection to Crossbar
       //
       connection.open();
+    },
+
+    config: function(){
+      return config;
     },
 
     debug: {
