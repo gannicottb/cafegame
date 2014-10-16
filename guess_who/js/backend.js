@@ -11,16 +11,16 @@ var Backend = (function() {
   var correct_answer, guess_list, round_in_progress, answers;
   var uid_counter, users, logged_in_users, round_timer;
   var round, round_end;
-  
 
-  var init = function(){
+
+  var init = function() {
 
     config = {
       NUMBER_OF_ANSWERS: 4,
       ROUND_DURATION: 20000, // in ms
       MIN_PLAYERS_TO_START: 2, //set to 2 for DEBUG
       PREPARE_DURATION: 5000, // in ms
-      IDLE_THRESHOLD: 2      
+      IDLE_THRESHOLD: 2
     }
 
     // Members
@@ -29,9 +29,9 @@ var Backend = (function() {
     users = [];
     logged_in_users = 0;
     round_timer = null;
-    
+
     guess_list = [];
-    
+
     states = {
       WAIT: 0,
       PREPARE: 1,
@@ -100,7 +100,10 @@ var Backend = (function() {
     // Log them in
     var logged_back_in = user.logged_in;
     user.logged_in = true;
-    user.idle = {this_round: false, count: 0}
+    user.idle = {
+      this_round: false,
+      count: 0
+    }
 
     console.log("User " + user.name + " is logged in.");
 
@@ -108,9 +111,9 @@ var Backend = (function() {
 
     logged_in_users = getLoggedInUsers().length; // cache the number of logged in users
 
-    switch(round.state){
+    switch (round.state) {
       case states.WAIT:
-        if(logged_in_users >= config.MIN_PLAYERS_TO_START){
+        if (logged_in_users >= config.MIN_PLAYERS_TO_START) {
           // We have enough players to go to Prepare
           round.state = states.PREPARE;
           // Set a clear-able timeout to start the next round
@@ -120,7 +123,7 @@ var Backend = (function() {
         } else {
           // We don't have enough players, so let's calculate how many more we need
           round.players_needed = logged_in_users < config.MIN_PLAYERS_TO_START ? config.MIN_PLAYERS_TO_START - logged_in_users : 0
-        }        
+        }
         break;
       case states.PREPARE:
         // do nothing for now
@@ -131,14 +134,14 @@ var Backend = (function() {
     }
 
     result.round = round; // add the round to the result bundle
-  
-    if(!logged_back_in){ // only publish newlogin event if the person wasn't logged in before
-      session.publish("com.google.guesswho.newLogin", [], {      
+
+    if (!logged_back_in) { // only publish newlogin event if the person wasn't logged in before
+      session.publish("com.google.guesswho.newLogin", [], {
         new_player: {
           id: user.id,
           name: user.name
         }
-      });     
+      });
     }
     return result;
   };
@@ -151,7 +154,10 @@ var Backend = (function() {
       name: "guest" + uid_counter,
       logged_in: false,
       score: 0,
-      idle: {this_round: true, count: 0}
+      idle: {
+        this_round: true,
+        count: 0
+      }
     };
     return uid_counter++;
   };
@@ -176,7 +182,7 @@ var Backend = (function() {
   //
   var submitGuess = function(args, kwargs, details) {
     // Check to make sure the round is still going
-    if (round.state != states.PROGRESS ) {
+    if (round.state != states.PROGRESS) {
       return;
     }
 
@@ -185,7 +191,10 @@ var Backend = (function() {
     verify(user);
 
     // This user is not idle this round, and their idle count is reset
-    user.idle = {this_round: false, count: 0}
+    user.idle = {
+      this_round: false,
+      count: 0
+    }
 
     round.submitted_guesses++;
 
@@ -197,7 +206,7 @@ var Backend = (function() {
 
     if (correct) { // If you didn't get it right, you get a score of 0 (maybe some very small number just for playing?)
       var time_left = Math.floor((round.end - kwargs.time)); // in ms
-      score = Math.round(time_left/1000) * 10;  //Score = number of seconds left * 10
+      score = Math.round(time_left / 1000) * 10; //Score = number of seconds left * 10
     }
 
     user.score += score;
@@ -211,7 +220,7 @@ var Backend = (function() {
 
     // End the round early if everyone has guessed
     //
-    if(round.submitted_guesses === logged_in_users){
+    if (round.submitted_guesses === logged_in_users) {
       clearTimeout(round_timer);
       onRoundOver();
     }
@@ -231,13 +240,13 @@ var Backend = (function() {
   var onLogout = function(args, kwargs, details) {
     var user = lookup(args[0]);
     user.logged_in = false;
-    var logout_msg = 'User ' + user.name + ' has logged out!';    
+    var logout_msg = 'User ' + user.name + ' has logged out!';
     logged_in_users = getLoggedInUsers().length;
 
-    if(round.state === states.PREPARE && logged_in_users < config.MIN_PLAYERS_TO_START){
-        round.state = states.WAIT; // backend is now waiting
-        clearTimeout(round_timer); // clear future events
-        session.publish("com.google.guesswho.stateChange", [], round);
+    if (round.state === states.PREPARE && logged_in_users < config.MIN_PLAYERS_TO_START) {
+      round.state = states.WAIT; // backend is now waiting
+      clearTimeout(round_timer); // clear future events
+      session.publish("com.google.guesswho.stateChange", [], round);
     }
 
     console.log(logout_msg);
@@ -254,7 +263,7 @@ var Backend = (function() {
     round.number = (round.number + 1) % guess_list.length;
 
     // All users are considered idle until they answer during a round
-    users.map(function(user){
+    users.map(function(user) {
       user.idle.this_round = true
     })
 
@@ -288,26 +297,25 @@ var Backend = (function() {
   var onRoundOver = function(args, kwargs, details) {
     round.submitted_guesses = 0; //clear the submitted_guesses count
     round.end = 0; // clear the round end time
-    
-    if(round.state === states.PROGRESS){
-      round.state = states.PREPARE;      
+
+    if (round.state === states.PROGRESS) {
+      round.state = states.PREPARE;
     }
-    
+
     //TODO:
     // Grab the top X highest scoring players and put their info into an object
     // Publish that leaderboard object for the large-right display
 
     // For all idle users, increment their consecutive idle round count
-    users.filter(function(user){
+    users.filter(function(user) {
       return user.idle.this_round
-    }).map(function(idle_user){
+    }).map(function(idle_user) {
       idle_user.idle.count += 1
-      if (idle_user.idle.count == config.IDLE_THRESHOLD){
+      if (idle_user.idle.count == config.IDLE_THRESHOLD) {
         //TODO: if they have been idle for X rounds, ask them to confirm that they still want to play
         //sendWakeupMessage(idle_user); //
         session.publish('com.google.guesswho.confirm', [idle_user.id]);
-      }
-      else if (idle_user.idle.count > config.IDLE_THRESHOLD){
+      } else if (idle_user.idle.count > config.IDLE_THRESHOLD) {
         // they get one round to confirm, then we log them out
         session.publish('com.google.guesswho.logout', [idle_user.id])
         onLogout([idle_user.id]); // call onLogout manually because publishers don't listen to themselves, apparently
@@ -315,9 +323,9 @@ var Backend = (function() {
     });
 
     // If we still have enough players to play, then set a timeout to start a new round
-    if(logged_in_users >= config.MIN_PLAYERS_TO_START){
+    if (logged_in_users >= config.MIN_PLAYERS_TO_START) {
       round_timer = setTimeout(startNextRound, config.PREPARE_DURATION);
-    }else{
+    } else {
       // otherwise, we go back to Wait and let everyone know that we're waiting for players
       round.state = states.WAIT;
     }
@@ -332,15 +340,17 @@ var Backend = (function() {
 
     // auto resize iframes
     $('.demo_window').height($(window).height() - 50);
-    $('.demo_window').width($(window).width()/2 - 25);
+    $('.demo_window').width($(window).width() / 2 - 25);
 
     // grab URL params from the browser and set config variables
-    location.search.slice(1).split('&').map(function(str){
+    location.search.slice(1).split('&').map(function(str) {
       var pair = str.split('=');
       var key = pair[0];
       var value = pair[1];
-      if (config.hasOwnProperty(key)){
-        config[key] = value[value.length-1] == 's' ? Number(value.substr(0,value.length-1)) * 1000 : Number(value)
+      // if the url param matches a config property, then set it to the supplied value
+      if (config.hasOwnProperty(key)) {
+        // if the value ends in 's', chop the 's' off, convert value from milliseconds to seconds
+        config[key] = value[value.length - 1] == 's' ? Number(value.substr(0, value.length - 1)) * 1000 : Number(value)
       }
     });
 
@@ -382,16 +392,14 @@ var Backend = (function() {
       }, session.log
     );
 
-    session.register('com.google.guesswho.getLoggedInUsers', function(args, kwargs, details){
-        console.log("Entered getLoggedInUsers RPC");
-        return getLoggedInUsers();
-      }
-     ).then(
-      function(success){
-         console.log("registered ", success.procedure);
+    session.register('com.google.guesswho.getLoggedInUsers', function(args, kwargs, details) {
+      console.log("Entered getLoggedInUsers RPC");
+      return getLoggedInUsers();
+    }).then(
+      function(success) {
+        console.log("registered ", success.procedure);
       }, session.log
-     );    
-    
+    );
 
   };
 
@@ -399,8 +407,8 @@ var Backend = (function() {
 
     connect: function() {
 
-      init(); 
-      
+      init();
+
       var wsuri = null;
 
       // include AutobahnJS
@@ -441,31 +449,28 @@ var Backend = (function() {
       connection.open();
     },
 
-    config: function(){
+    config: function() {
       return config;
     },
 
     debug: {
-      users: function(){
+      users: function() {
         return users;
       },
 
-      round: function(){
+      round: function() {
         return round;
       },
 
-      setCorrectAnswer: function(correct){
+      setCorrectAnswer: function(correct) {
         round.correct_answer = correct;
       },
 
-      roundInProgress: function(in_progress){
-        if(in_progress){
+      roundInProgress: function(in_progress) {
+        if (in_progress) {
           round.state = states.PROGRESS;
         }
       }
-      
     }
-
-
   };
 })();
