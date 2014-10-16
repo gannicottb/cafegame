@@ -5,6 +5,7 @@ var Backend = (function() {
 
   //Constants
   var NUMBER_OF_ANSWERS, ROUND_DURATION, PREPARE_DURATION, MIN_PLAYERS_TO_START;
+  var ROUNDS_FOR_LEADERBOARD = 3;
 
   // Members
   var session;
@@ -151,6 +152,8 @@ var Backend = (function() {
       name: "guest" + uid_counter,
       logged_in: false,
       score: 0,
+      round_cumulative_scores: [],
+      leaderboard_score: 0,
       idle: {this_round: true, count: 0}
     };
     return uid_counter++;
@@ -294,8 +297,47 @@ var Backend = (function() {
     }
     
     //TODO:
-    // Grab the top X highest scoring players and put their info into an object
-    // Publish that leaderboard object for the large-right display
+    // Grab the top X highest scoring players and put their info into an object5
+ 
+    //In case the user did not attempt any answer in this round, 
+    //the cumulative round score will be undefined and should be set to the previous round's cumulative score
+
+    for(var i=0;i<users.length;i++){
+      users[i].round_cumulative_scores[round.number] = users[i].score;       
+    }
+
+    // Calculate the cumulative score for last X (ROUNDS_FO) rounds
+    for(var i=0;i<users.length;i++){
+      if(round.number > ROUNDS_FOR_LEADERBOARD)
+      {
+        if(users[i].round_cumulative_scores[round.number - ROUNDS_FOR_LEADERBOARD] === undefined) //User did not play in previous rounds
+          users[i].round_cumulative_scores[round.number - ROUNDS_FOR_LEADERBOARD] = 0;
+
+        users[i].leaderboard_score = users[i].score - users[i].round_cumulative_scores[round.number - ROUNDS_FOR_LEADERBOARD];
+      }
+      else
+        users[i].leaderboard_score = users[i].score;
+    }
+
+    var leaders = users;
+
+    //Sort users based on cumulative score for last X rounds
+    leaders.sort(function(a,b){
+      if(b.leaderboard_score > a.leaderboard_score){
+        return 1;
+      }
+      if(b.leaderboard_score < a.leaderboard_score){
+        return -1;
+      }
+      return 0;
+    });
+
+    var top_x_leaders = [];
+
+    if(leaders.length > 5)
+      top_x_leaders = leaders.slice(0,5);
+    else
+      top_x_leaders = leaders;
 
     // For all idle users, increment their consecutive idle round count
     users.filter(function(user){
@@ -323,7 +365,7 @@ var Backend = (function() {
     }
 
     // The round is now officially over
-    session.publish('com.google.guesswho.roundEnd', [], round);
+    session.publish('com.google.guesswho.roundEnd', top_x_leaders, round);
   };
 
 

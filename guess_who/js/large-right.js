@@ -216,7 +216,7 @@ function main(session) {
 
   //Display leader board on round end
   var onRoundEnd = function(args, kwargs, details){
-     
+     /*
     session.call("com.google.guesswho.getLoggedInUsers").then(
        function(success){
         
@@ -246,7 +246,16 @@ function main(session) {
           //retry
        }
 
-    ); 
+    ); */
+
+    //args contains the top X leaders for the leader board
+
+    if(args.length>0){
+        var leader_board_body = $('#leader_board_body');
+        var leaders = new EJS({url: 'templates/leader_board.ejs'}).render({leaders: args});
+        leader_board_body.html(leaders);      
+    }
+ 
   }
 
   // Subscribe to New Guess event
