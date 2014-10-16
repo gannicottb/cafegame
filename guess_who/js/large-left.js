@@ -121,22 +121,47 @@ var LargeLeft = (function() {
     $("#person_name").html("NAME THAT PERSON!");
     console.log("Guess start");
 
-    // TODO: Use round.duration to determine how many intervals to display
-    
-    var changeLeft = 4;
+    // TODO: Use round.end to determine how many intervals to display
 
-    var nextPixelate = function() {
-      if (changeLeft === 0) {
+    duration = round.end - new Date().getTime(); // how long are we pixelating?
+    console.log("duration", duration);
+
+    var level = 0.01; // initial pixelation level
+    var interval = 50; // change pixelation level every interval
+    var max_pixelate = 0.3; // maximum pixelation level
+
+    var change = (max_pixelate-level) / (duration/interval) // how much do we change at each interval?
+    console.log("change", change);
+
+    var nextPixelate = function(){
+      if (level >=  1){
         showAnswer();
       } else {
-        pixelate(2 * (6 - changeLeft));
-        changeLeft -= 1;
+        pixelate(level);
+        if (level <= max_pixelate/2)//change slowly in first half
+          level += (change/2)        
+        else
+          level += change //change more quickly in last half
       }
-    };
+    }
 
     nextPixelate();
+    animation_interval = setInterval(nextPixelate, interval);
+    
+    // var changeLeft = 4;
 
-    animation_interval = setInterval(nextPixelate, 5000)
+    // var nextPixelate = function() {
+    //   if (changeLeft === 0) {
+    //     showAnswer();
+    //   } else {
+    //     pixelate(2 * (6 - changeLeft));
+    //     changeLeft -= 1;
+    //   }
+    // };
+
+    // nextPixelate();
+
+    // animation_interval = setInterval(nextPixelate, 5000)
 
   };
 
@@ -145,7 +170,7 @@ var LargeLeft = (function() {
   function showAnswer() {
     clearInterval(animation_interval);
     animation_interval = undefined;
-    pixelate(100); // show origin image
+    pixelate(1); // show origin image
     console.log("Round Over! Show Answer: XXXX");
   
     $("#person_name").html("ANSWER: " + round.correct_answer.keyword);
@@ -168,9 +193,9 @@ var LargeLeft = (function() {
 
   //Pixelation method
   //
-  function pixelate(v) {
-    console.log("pixelating " + v);
-    var size = v * 0.01,
+  function pixelate(size) {
+    console.log("pixelating " + size);
+    //var size = v * 0.01,
 
     // cache scaled width and height
     w = canvas.width * size,
