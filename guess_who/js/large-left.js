@@ -48,7 +48,7 @@ var LargeLeft = (function() {
 
   // Handle results of Image Search
   //
-  var hndlr = function (response) {
+  function hndlr (response) {
     if (response.items === undefined) {
       console.log("error occured: " + response.items);
       // error handling
@@ -105,12 +105,17 @@ var LargeLeft = (function() {
       console.log("Using app key: " + idx);
 
       $.ajax({
-        url: 'https://www.googleapis.com/customsearch/v1?key=' + appkey + '&cx=009496675471206614083:yhwvgwxk0ws&q=' + keyword + '&callback=hndlr&searchType=image&imgSize=medium',
+        url: 'https://www.googleapis.com/customsearch/v1?key=' + appkey + '&cx=009496675471206614083:yhwvgwxk0ws&q=' + round.correct_answer.keyword + '&callback=hndlr&searchType=image&imgSize=medium',
         context: document.body,
-        success: function(responseText) {
-          var retry = eval(responseText);
-          if (retry) loadGoogleImage(); // retry
-        }
+        statusCode:{
+          200: function(ok){
+            var retry = eval(ok.responseText);
+            if (retry) loadGoogleImage(); // retry
+          },
+          400: function(err){
+            console.log("AJAX call to Google API errored out,", err)
+          }
+        },
       });      
     }
   };
