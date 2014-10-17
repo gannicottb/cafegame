@@ -44,7 +44,7 @@ var Backend = (function() {
       answers: [],
       number: -1,
       end: 0,
-      players_needed: MIN_PLAYERS_TO_START,
+      players_needed: config.MIN_PLAYERS_TO_START,
       submitted_guesses: 0
     }
   };

@@ -2,7 +2,7 @@ var LargeLeft = (function() {
 
   //Private Variables
   //
-  var canvas, ctx;
+  var canvas, ctx, frame;
   var session, googleAppKey, round_number, keyword, timer_interval, animation_interval;
   var round;
   var states, image_result;
@@ -61,7 +61,7 @@ var LargeLeft = (function() {
             console.log("FATAL: Limit ALL exceeds!");
           } else {
             console.log("Retry next key " + googleAppKey.currentIndex + "...");
-            return true;
+            return true; // this returns to loadGoogleImage() and tries again in some time
           }
         } else {
           alert("FATAL: Error " + response.error.code + ": " + response.error.message);
@@ -81,10 +81,34 @@ var LargeLeft = (function() {
       localStorage.setItem(search_term, item.link);
       console.log("caching", search_term );
 
-      img.src = item.link + '?' + new Date().getTime(); // cache bust
+      img.height = item.image.height
+      img.width = item.image.width
+      img.src = item.link + '?' + new Date().getTime(); // cache bust to reload the image and trigger guessStart()
     }
     return false;
   };
+
+  var imageRequestURL = function(appkey, keyword){
+    request = {
+      key: appkey,
+      callback: 'hndlr',
+      cx: '009496675471206614083:yhwvgwxk0ws',
+      q: keyword,
+      searchType: 'image',
+      imgSize: 'xxlarge',
+      imgType: 'face',
+      safe: "high"
+    }
+
+    var url = "https://www.googleapis.com/customsearch/v1"
+
+    Object.keys(request).map(function(key, index){
+      url += (index == 0 ? '?' : '&')
+      url += (key+'='+request[key])
+    })
+    return url;
+    //return 'https://www.googleapis.com/customsearch/v1?key=' + appkey + '&cx='+cx+'&q=' + round.correct_answer.keyword + '&callback=hndlr&searchType=image&imgSize=xxlarge&imgType=face',
+  }
 
   // Launch a google image search with the current keyword
   //
@@ -105,12 +129,14 @@ var LargeLeft = (function() {
       console.log("Using app key: " + idx);
 
       $.ajax({
-        url: 'https://www.googleapis.com/customsearch/v1?key=' + appkey + '&cx=009496675471206614083:yhwvgwxk0ws&q=' + round.correct_answer.keyword + '&callback=hndlr&searchType=image&imgSize=medium',
+        url: imageRequestURL(appkey, round.correct_answer.keyword),
         context: document.body,
         statusCode:{
           200: function(ok){
-            var retry = eval(ok.responseText);
-            if (retry) loadGoogleImage(); // retry
+            var retry = eval(ok.responseText); //execute the hndlr with code that Google sends back. Will return true if retry is needed
+            if (retry) {
+              setTimeout(loadGoogleImage, 500); // retry in 500 ms              
+            }
           },
           400: function(err){
             console.log("AJAX call to Google API errored out,", err)
@@ -123,10 +149,30 @@ var LargeLeft = (function() {
   // Round start handling, more or less
   //
   function guessStart() {
+    // Update displayed info
     $("#person_name").html("NAME THAT PERSON!");
-    console.log("Guess start");
+    console.log("Guess start");    
 
-    // TODO: Use round.end to determine how many intervals to display
+    //Set size of the canvas    
+    var w,h;
+    if (img.width >= img.height){ //if landscape or square
+      w = frame.width();
+      h = w * (img.height/img.width);
+    } else { // if portrait
+      h = frame.height(); 
+      w = h * (img.width/img.height);
+    }
+
+    canvas.width = w;
+    canvas.height = h;
+
+    // reset the details
+    ctx = canvas.getContext('2d');
+
+    /// turn off image smoothing - this will give the pixelated effect
+    ctx.mozImageSmoothingEnabled = false;
+    ctx.webkitImageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = false;
 
     duration = round.end - new Date().getTime(); // how long are we pixelating?
     console.log("duration", duration);
@@ -139,7 +185,7 @@ var LargeLeft = (function() {
     console.log("change", change);
 
     var nextPixelate = function(){
-      if (level >=  1){
+      if (level >=  max_pixelate){
         showAnswer();
       } else {
         pixelate(level);
@@ -152,21 +198,6 @@ var LargeLeft = (function() {
 
     nextPixelate();
     animation_interval = setInterval(nextPixelate, interval);
-    
-    // var changeLeft = 4;
-
-    // var nextPixelate = function() {
-    //   if (changeLeft === 0) {
-    //     showAnswer();
-    //   } else {
-    //     pixelate(2 * (6 - changeLeft));
-    //     changeLeft -= 1;
-    //   }
-    // };
-
-    // nextPixelate();
-
-    // animation_interval = setInterval(nextPixelate, 5000)
 
   };
 
@@ -199,11 +230,10 @@ var LargeLeft = (function() {
   //Pixelation method
   //
   function pixelate(size) {
-    console.log("pixelating " + size);
-    //var size = v * 0.01,
+    console.log("pixelating " + size);    
 
     // cache scaled width and height
-    w = canvas.width * size,
+    w = canvas.width * size;
     h = canvas.height * size;
 
     // draw original image to the scaled size
@@ -246,9 +276,6 @@ var LargeLeft = (function() {
     }
 
     // Clear the timer
-    // clearInterval(timer_interval);
-    // var timer = new EJS({url: 'templates/timer.ejs'}).render({time_left: 0});
-    // $('.timer').html(timer);
     GuessWho.clearTimer($('.timer'), timer_interval);
 
     //Skip to the end of the animation
@@ -264,7 +291,7 @@ var LargeLeft = (function() {
         $("#status").html("Waiting for "+kwargs.players_needed+" players to start next round");
         break;
       case GuessWho.states.PREPARE:
-        $("#status").append("Next round beginning in 5 seconds");
+        $("#status").append("<br>Next round beginning in 5 seconds");
         break;       
     }
   };
@@ -276,18 +303,19 @@ var LargeLeft = (function() {
     session = a_session;
 
     // Pixelate
+    frame = $('#img_frame');
     canvas = document.getElementById("demo_body_img");
-    ctx = canvas.getContext('2d');
 
-    /// turn off image smoothing - this will give the pixelated effect
-    ctx.mozImageSmoothingEnabled = false;
-    ctx.webkitImageSmoothingEnabled = false;
-    ctx.imageSmoothingEnabled = false;
+    // ctx = canvas.getContext('2d');
+
+    // /// turn off image smoothing - this will give the pixelated effect
+    // ctx.mozImageSmoothingEnabled = false;
+    // ctx.webkitImageSmoothingEnabled = false;
+    // ctx.imageSmoothingEnabled = false;
 
     /// wait until image is actually available
     img.onload = guessStart; //so load the image to start everything
     img.onerror = imgError;
-
     
 
     //
