@@ -5,6 +5,8 @@ var Backend = (function() {
 
   //Constants
   var NUMBER_OF_ANSWERS, ROUND_DURATION, PREPARE_DURATION, MIN_PLAYERS_TO_START;
+  var ROUNDS_FOR_LEADERBOARD = 3;
+  var NUMBER_OF_LEADERS = 5;
 
   // Members
   var session;
@@ -130,6 +132,10 @@ var Backend = (function() {
         break;
       case states.PROGRESS:
         // do nothing for now
+
+        //initialize user score for this round (user has joined mid-round)
+        user.round_scores[round.number] = 0;
+
         break;
     }
 
@@ -154,6 +160,8 @@ var Backend = (function() {
       name: "guest" + uid_counter,
       logged_in: false,
       score: 0,
+      round_scores: [],
+      leaderboard_score: 0,      
       idle: {
         this_round: true,
         count: 0
@@ -211,6 +219,13 @@ var Backend = (function() {
 
     user.score += score;
 
+    //Update round score for user
+
+    var user_x = $.grep(users, function(e){ return e.id == kwargs.id; })[0];
+    console.log("USER X = "+user_x);
+    user_x.round_scores[round.number] = score;
+    console.log("User ID = "+user_x.id+" Round Scores = "+user_x.round_scores);
+
     // Publish the new guess event
     session.publish('com.google.guesswho.newGuess', [], {
       round: round.number,
@@ -267,6 +282,11 @@ var Backend = (function() {
       user.idle.this_round = true
     })
 
+    //All users are assigned starting round score of 0
+    users.map(function(user) {
+      user.round_scores[round.number] = 0
+    })
+
     //Pick the keyword for the round, save the id
     round.correct_answer = guess_list[round.number];
 
@@ -303,8 +323,51 @@ var Backend = (function() {
     }
 
     //TODO:
-    // Grab the top X highest scoring players and put their info into an object
-    // Publish that leaderboard object for the large-right display
+    // Grab the top X highest scoring players and put their info into an object5
+    // Calculate the cumulative score for last X (ROUNDS_FO) rounds
+
+    for(var i=0; i<users.length; i++)
+    { 
+      var last_x_scores;
+
+      //Grab last X scores
+      if(round.number>=ROUNDS_FOR_LEADERBOARD)
+        last_x_scores = users[i].round_scores.slice(round.number - ROUNDS_FOR_LEADERBOARD + 1, round.number + 1);
+      else
+        last_x_scores = users[i].round_scores;
+
+      console.log("Last x scores: "+last_x_scores);
+      
+      //Sum up the last X scores
+      var sum = last_x_scores.reduce(function(previous, current) {
+        return previous + current;
+      }, 0);
+
+      console.log("SUM OF Last x scores: "+sum);
+
+      users[i].leaderboard_score = sum;
+    }
+
+    var leaders = users;
+
+    //Sort users based on cumulative score for last X rounds
+    leaders.sort(function(a,b){
+      if(b.leaderboard_score > a.leaderboard_score){
+        return 1;
+      }
+      if(b.leaderboard_score < a.leaderboard_score){
+        return -1;
+      }
+      return 0;
+    });
+
+    var top_x_leaders;
+
+    if(leaders.length > NUMBER_OF_LEADERS)
+      top_x_leaders = leaders.slice(0,NUMBER_OF_LEADERS);
+    else
+      top_x_leaders = leaders;
+
 
     // For all idle users, increment their consecutive idle round count
     users.filter(function(user) {
@@ -331,7 +394,7 @@ var Backend = (function() {
     }
 
     // The round is now officially over
-    session.publish('com.google.guesswho.roundEnd', [], round);
+    session.publish('com.google.guesswho.roundEnd', top_x_leaders, round);
   };
 
 
