@@ -80,13 +80,7 @@ var qrcode;
 
 function main(session) {
 
-  //Display all logged in users
-  //showAllLoggedInUsers();
-
-  //Find local IP and display QR Code  
-  loadQRCode();
-
-  //Display the QR code
+  //Display the default QR code
   qrcode = new QRCode($("#qr_code")[0], {
       text: 'http://127.0.0.1:8080/mobile.html',
       width: 256,
@@ -96,6 +90,9 @@ function main(session) {
       correctLevel : QRCode.CorrectLevel.H
     }
   );
+  
+  //Find local IP and display QR Code  
+  loadQRCode();
 
   var printGuesses = function(guesses) {
     //Create a list item

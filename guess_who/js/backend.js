@@ -35,11 +35,7 @@ var Backend = (function() {
 
     guess_list = [];
 
-    states = {
-      WAIT: 0,
-      PREPARE: 1,
-      PROGRESS: 2
-    }
+    states = GuessWho.states;
 
     round = {
       state: states.WAIT,

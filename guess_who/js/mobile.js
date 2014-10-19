@@ -187,7 +187,7 @@ var Mobile = (function() {
 
         $('.round_score').html("*"+success.score+"*");
 
-        // Update the score
+        // Update the score - this doesn't match how we handle score now
         user.score += success.score
         name_container.html(new EJS({url: 'templates/user_name.ejs'}).render(user));
 

@@ -248,6 +248,11 @@ button:hover
     float: right;  
 }
 
+.guess {
+  height: 40px;
+  width: 40px;
+}
+
 .demo_window {
     width: 700px;
     height: 500px;

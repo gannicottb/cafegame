@@ -25,11 +25,7 @@ var LargeLeft = (function() {
       currentIndex: 0
     };
 
-    states = {
-      WAIT: 0,
-      PREPARE: 1,
-      PROGRESS: 2
-    };  
+    states = GuessWho.states;
 
     round = null;
 
