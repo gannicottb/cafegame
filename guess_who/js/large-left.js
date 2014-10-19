@@ -3,9 +3,9 @@ var LargeLeft = (function() {
   //Private Variables
   //
   var canvas, ctx, frame;
-  var session, googleAppKey, round_number, keyword, timer_interval, animation_interval;
+  var session, googleAppKey, timer_interval, animation_interval;
   var round;
-  var states, image_result;
+  var states, image, image_result;
 
   //Private Functions
   //
@@ -29,14 +29,12 @@ var LargeLeft = (function() {
       WAIT: 0,
       PREPARE: 1,
       PROGRESS: 2
-    };
-
-    round_number = -1;
-    keyword = "";
+    };  
 
     round = null;
 
     timer_interval = null;
+    animation_interval = null;
 
     img = new Image();
 
@@ -230,7 +228,7 @@ var LargeLeft = (function() {
   //Pixelation method
   //
   function pixelate(size) {
-    console.log("pixelating " + size);    
+    //console.log("pixelating " + size);    
 
     // cache scaled width and height
     w = canvas.width * size;

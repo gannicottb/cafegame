@@ -10,6 +10,7 @@ var Backend = (function() {
 
   // Members
   var session;
+  var config;
   var correct_answer, guess_list, round_in_progress, answers;
   var uid_counter, users, logged_in_users, round_timer;
   var round, round_end;
@@ -74,6 +75,10 @@ var Backend = (function() {
   };
 
   var lookup = function(uid) {
+    
+    if (users[Number(uid)] != undefined){
+      console.assert(users[0].id == 0, "Users[0].id does not equal 0");
+    }
     return users[Number(uid)];
   };
 
@@ -105,6 +110,12 @@ var Backend = (function() {
     user.idle = {
       this_round: false,
       count: 0
+    }
+
+    if(user.id != Number(uid))
+    {
+      //DEBUGGING USERS ISSUE
+      console.warn("ruh roh!")
     }
 
     console.log("User " + user.name + " is logged in.");
@@ -198,6 +209,14 @@ var Backend = (function() {
 
     verify(user);
 
+    console.log("Guess from user", kwargs.id, "identified as user", user.id)
+
+    if(user.id != Number(kwargs.id))
+    {
+      //DEBUGGING USERS ISSUE
+      console.warn("ruh roh!")
+    }
+
     // This user is not idle this round, and their idle count is reset
     user.idle = {
       this_round: false,
@@ -222,9 +241,9 @@ var Backend = (function() {
     //Update round score for user
 
     var user_x = $.grep(users, function(e){ return e.id == kwargs.id; })[0];
-    console.log("USER X = "+user_x);
+    //console.log("USER X = "+user_x);
     user_x.round_scores[round.number] = score;
-    console.log("User ID = "+user_x.id+" Round Scores = "+user_x.round_scores);
+    //console.log("User ID = "+user_x.id+" Round Scores = "+user_x.round_scores);
 
     // Publish the new guess event
     session.publish('com.google.guesswho.newGuess', [], {
@@ -241,7 +260,7 @@ var Backend = (function() {
     }
 
     // Return their score for the round
-    result = {
+    var result = {
       correct: correct,
       score: score
     }
@@ -254,6 +273,15 @@ var Backend = (function() {
   //
   var onLogout = function(args, kwargs, details) {
     var user = lookup(args[0]);
+    
+    if(user.id != Number(args[0]))
+    {
+      //DEBUGGING USERS ISSUE
+      console.warn("ruh roh!")
+    }
+
+    verify(user);
+
     user.logged_in = false;
     var logout_msg = 'User ' + user.name + ' has logged out!';
     logged_in_users = getLoggedInUsers().length;
@@ -336,14 +364,14 @@ var Backend = (function() {
       else
         last_x_scores = users[i].round_scores;
 
-      console.log("Last x scores: "+last_x_scores);
+      //console.log("Last x scores: "+last_x_scores);
       
       //Sum up the last X scores
       var sum = last_x_scores.reduce(function(previous, current) {
         return previous + current;
       }, 0);
 
-      console.log("SUM OF Last x scores: "+sum);
+      //console.log("SUM OF Last x scores: "+sum);
 
       users[i].leaderboard_score = sum;
     }
@@ -427,7 +455,7 @@ var Backend = (function() {
           id: i,
           keyword: lines[i]
         }
-        console.log(guess_list[i].id, guess_list[i].keyword);
+        //console.log(guess_list[i].id, guess_list[i].keyword);
       }
       console.log("guess_list.length =" + guess_list.length);
       //Shuffle the keywords in the list
