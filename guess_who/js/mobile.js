@@ -11,11 +11,7 @@ var Mobile = (function() {
   //
 
   var init = function(){
-    states = {
-      WAIT: 0,
-      PREPARE: 1,
-      PROGRESS: 2
-    };
+    states = GuessWho.states;
 
     user = {
       id: null,
