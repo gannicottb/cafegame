@@ -355,7 +355,7 @@ var Backend = (function() {
       users[i].leaderboard_score = sum;
     }
 
-    var leaders = users;
+    var leaders = users.slice(0);
 
     //Sort users based on cumulative score for last X rounds
     leaders.sort(function(a,b){
