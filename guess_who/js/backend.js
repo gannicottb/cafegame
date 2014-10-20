@@ -227,10 +227,11 @@ var Backend = (function() {
 
     //Update round score for user - we can probably use plain user now
 
-    var user_x = $.grep(users, function(e){ return e.id == kwargs.id; })[0];
-    //console.log("USER X = "+user_x);
-    user_x.round_scores[round.number] = score;
-    //console.log("User ID = "+user_x.id+" Round Scores = "+user_x.round_scores);
+    // var user_x = $.grep(users, function(e){ return e.id == kwargs.id; })[0];
+    
+    // user_x.round_scores[round.number] = score;
+    
+    user.round_scores[round.number] = score;
 
     // Publish the new guess event
     session.publish('com.google.guesswho.newGuess', [], {
