@@ -1,5 +1,4 @@
 var LargeLeft = (function() {
-
   //Private Variables
   //
   var canvas, ctx, frame;
@@ -100,8 +99,7 @@ var LargeLeft = (function() {
       url += (index == 0 ? '?' : '&')
       url += (key+'='+request[key])
     })
-    return url;
-    //return 'https://www.googleapis.com/customsearch/v1?key=' + appkey + '&cx='+cx+'&q=' + round.correct_answer.keyword + '&callback=hndlr&searchType=image&imgSize=xxlarge&imgType=face',
+    return url;  
   }
 
   // Launch a google image search with the current keyword
@@ -227,8 +225,8 @@ var LargeLeft = (function() {
     //console.log("pixelating " + size);    
 
     // cache scaled width and height
-    w = canvas.width * size;
-    h = canvas.height * size;
+    var w = canvas.width * size;
+    var h = canvas.height * size;
 
     // draw original image to the scaled size
     ctx.drawImage(img, 0, 0, w, h);
@@ -300,17 +298,9 @@ var LargeLeft = (function() {
     frame = $('#img_frame');
     canvas = document.getElementById("demo_body_img");
 
-    // ctx = canvas.getContext('2d');
-
-    // /// turn off image smoothing - this will give the pixelated effect
-    // ctx.mozImageSmoothingEnabled = false;
-    // ctx.webkitImageSmoothingEnabled = false;
-    // ctx.imageSmoothingEnabled = false;
-
     /// wait until image is actually available
     img.onload = guessStart; //so load the image to start everything
-    img.onerror = imgError;
-    
+    img.onerror = imgError;    
 
     //
     // SUBSCRIPTIONS

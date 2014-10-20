@@ -3,31 +3,26 @@ var Backend = (function() {
   //Private variables
   //
 
-  //Constants
-  var NUMBER_OF_ANSWERS, ROUND_DURATION, PREPARE_DURATION, MIN_PLAYERS_TO_START;
-  var ROUNDS_FOR_LEADERBOARD = 3;
-  var NUMBER_OF_LEADERS = 5;
-
-  // Members
   var session;
   var config;
-  var correct_answer, guess_list, round_in_progress, answers;
-  var uid_counter, users, logged_in_users, round_timer;
-  var round, round_end;
-
+  var guess_list;
+  var users;
+  var uid_counter, logged_in_users, round_timer;
+  var round, states;
 
   var init = function() {
+    // Set Member values
 
     config = {
       NUMBER_OF_ANSWERS: 4,
       ROUND_DURATION: 20000, // in ms
       MIN_PLAYERS_TO_START: 2, //set to 2 for DEBUG
       PREPARE_DURATION: 5000, // in ms
-      IDLE_THRESHOLD: 2
+      IDLE_THRESHOLD: 2,
+      ROUNDS_FOR_LEADERBOARD: 3,
+      NUMBER_OF_LEADERS: 5
     }
 
-    // Members
-    session;
     uid_counter = 0;
     users = [];
     logged_in_users = 0;
@@ -85,7 +80,6 @@ var Backend = (function() {
     return o;
   };
 
-
   // Login new and existing users
   var login = function(args, kwargs, details) {
     var result = {};
@@ -111,7 +105,7 @@ var Backend = (function() {
     if(user.id != Number(uid))
     {
       //DEBUGGING USERS ISSUE
-      console.warn("ruh roh!")
+      console.warn("users are out of order")
     }
 
     console.log("User " + user.name + " is logged in.");
@@ -138,11 +132,8 @@ var Backend = (function() {
         // do nothing for now
         break;
       case states.PROGRESS:
-        // do nothing for now
-
         //initialize user score for this round (user has joined mid-round)
         user.round_scores[round.number] = 0;
-
         break;
     }
 
@@ -156,6 +147,7 @@ var Backend = (function() {
         }
       });
     }
+
     return result;
   };
 
@@ -176,7 +168,6 @@ var Backend = (function() {
     };
     return uid_counter++;
   };
-
 
   // Change user names
   //
@@ -210,7 +201,7 @@ var Backend = (function() {
     if(user.id != Number(kwargs.id))
     {
       //DEBUGGING USERS ISSUE
-      console.warn("ruh roh!")
+      console.warn("users are out of order")
     }
 
     // This user is not idle this round, and their idle count is reset
@@ -234,7 +225,7 @@ var Backend = (function() {
 
     user.score += score;
 
-    //Update round score for user
+    //Update round score for user - we can probably use plain user now
 
     var user_x = $.grep(users, function(e){ return e.id == kwargs.id; })[0];
     //console.log("USER X = "+user_x);
@@ -256,14 +247,11 @@ var Backend = (function() {
     }
 
     // Return their score for the round
-    var result = {
+    return {
       correct: correct,
       score: score
-    }
-    return result;
+    };
   };
-
-
 
   // When a user logs out
   //
@@ -273,7 +261,7 @@ var Backend = (function() {
     if(user.id != Number(args[0]))
     {
       //DEBUGGING USERS ISSUE
-      console.warn("ruh roh!")
+      console.warn("users are out of order")
     }
 
     verify(user);
@@ -302,12 +290,9 @@ var Backend = (function() {
     round.number = (round.number + 1) % guess_list.length;
 
     // All users are considered idle until they answer during a round
+    //All users are assigned starting round score of 0    
     users.map(function(user) {
       user.idle.this_round = true
-    })
-
-    //All users are assigned starting round score of 0
-    users.map(function(user) {
       user.round_scores[round.number] = 0
     })
 
@@ -329,7 +314,6 @@ var Backend = (function() {
 
     //Set the alarm
     round.end = new Date().getTime() + config.ROUND_DURATION;
-
     round_timer = setTimeout(onRoundOver, config.ROUND_DURATION);
 
     //Publish the roundStart event (everyone wants to know)
@@ -346,8 +330,7 @@ var Backend = (function() {
       round.state = states.PREPARE;
     }
 
-    //TODO:
-    // Grab the top X highest scoring players and put their info into an object5
+    // Grab the top X highest scoring players and put their info into an object
     // Calculate the cumulative score for last X (ROUNDS_FO) rounds
 
     for(var i=0; i<users.length; i++)
@@ -355,8 +338,8 @@ var Backend = (function() {
       var last_x_scores;
 
       //Grab last X scores
-      if(round.number>=ROUNDS_FOR_LEADERBOARD)
-        last_x_scores = users[i].round_scores.slice(round.number - ROUNDS_FOR_LEADERBOARD + 1, round.number + 1);
+      if(round.number>=config.ROUNDS_FOR_LEADERBOARD)
+        last_x_scores = users[i].round_scores.slice(round.number - config.ROUNDS_FOR_LEADERBOARD + 1, round.number + 1);
       else
         last_x_scores = users[i].round_scores;
 
@@ -387,8 +370,8 @@ var Backend = (function() {
 
     var top_x_leaders;
 
-    if(leaders.length > NUMBER_OF_LEADERS)
-      top_x_leaders = leaders.slice(0,NUMBER_OF_LEADERS);
+    if(leaders.length > config.NUMBER_OF_LEADERS)
+      top_x_leaders = leaders.slice(0, config.NUMBER_OF_LEADERS);
     else
       top_x_leaders = leaders;
 
@@ -399,8 +382,7 @@ var Backend = (function() {
     }).map(function(idle_user) {
       idle_user.idle.count += 1
       if (idle_user.idle.count == config.IDLE_THRESHOLD) {
-        //TODO: if they have been idle for X rounds, ask them to confirm that they still want to play
-        //sendWakeupMessage(idle_user); //
+        //if they have been idle for X rounds, ask them to confirm that they still want to play
         session.publish('com.google.guesswho.confirm', [idle_user.id]);
       } else if (idle_user.idle.count > config.IDLE_THRESHOLD) {
         // they get one round to confirm, then we log them out

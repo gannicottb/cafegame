@@ -1,3 +1,13 @@
+// var LargeRight = (function() {
+//   //Private Variables
+//   //
+//   var qrcode
+//   var loggedInUsers
+
+//   //Private Functions
+//   //
+// })();
+
 var loadQRCode = function(){
   // Courtesy of http://net.ipcalf.com/
 
@@ -94,51 +104,51 @@ function main(session) {
   //Find local IP and display QR Code  
   loadQRCode();
 
-  var printGuesses = function(guesses) {
-    //Create a list item
-    var list = document.createElement('ul');
+  // var printGuesses = function(guesses) {
+  //   //Create a list item
+  //   var list = document.createElement('ul');
 
-    var total = 0;
+  //   var total = 0;
 
-    for (var i = guesses.length - 1; i >= 0; i--) {
-      total += guesses[i].count;
-    }
+  //   for (var i = guesses.length - 1; i >= 0; i--) {
+  //     total += guesses[i].count;
+  //   }
 
-    for (var i = 0; i < guesses.length; i++) {
+  //   for (var i = 0; i < guesses.length; i++) {
 
-      console.log(guesses[i]);
+  //     console.log(guesses[i]);
 
-      // Create the list item:
-      var item = document.createElement('li');
-      item.className = 'trendinglist';
-      // Set its contents:
-      item.appendChild(document.createTextNode(guesses[i].name+": "+guesses[i].count+" guesses"));
-      var prog = document.createElement('progress');
-      prog.id = "progressbar" + i;
-      prog.value = guesses[i].count;
-      prog.max = total;
-      prog.className = 'progress';
-      item.appendChild(prog);
+  //     // Create the list item:
+  //     var item = document.createElement('li');
+  //     item.className = 'trendinglist';
+  //     // Set its contents:
+  //     item.appendChild(document.createTextNode(guesses[i].name+": "+guesses[i].count+" guesses"));
+  //     var prog = document.createElement('progress');
+  //     prog.id = "progressbar" + i;
+  //     prog.value = guesses[i].count;
+  //     prog.max = total;
+  //     prog.className = 'progress';
+  //     item.appendChild(prog);
 
-      // Add it to the list:
-      list.appendChild(item);
-    }
+  //     // Add it to the list:
+  //     list.appendChild(item);
+  //   }
 
-    var listElement = document.getElementById('guessList');
+  //   var listElement = document.getElementById('guessList');
 
-    if (listElement.hasChildNodes() === true)
-      listElement.removeChild(listElement.childNodes[0]);
+  //   if (listElement.hasChildNodes() === true)
+  //     listElement.removeChild(listElement.childNodes[0]);
 
-    listElement.appendChild(list);
+  //   listElement.appendChild(list);
 
-  }
+  // }
 
   var showAllLoggedInUsers = function(){
 
     session.call("com.google.guesswho.getLoggedInUsers").then(
-       function(success){
+       function(loggedInUsers){
         
-          loggedInUsers=success;
+          //var loggedInUsers=success;
         
           console.log("length of loggedInUsers ="+loggedInUsers.length);    
 
@@ -152,6 +162,7 @@ function main(session) {
        function(error){
           session.log();
           //retry
+          setTimeout(showAllLoggedInUsers, 500);
        }
 
     ); 
@@ -160,18 +171,12 @@ function main(session) {
   // SUBSCRIPTIONS
   
   //Load gray colored icons to represent players in the round
-  var onRoundStart = function(args, kwargs, details){
-     
+  var onRoundStart = function(args, kwargs, details){     
       showAllLoggedInUsers();
   }
 
   //Change icon color based on guess correctness
   var onNewGuess = function(args, kwargs, details){
-      
-      new_guess = kwargs;
-
-      // And then add the new_guess to the screen
-
       //Get icon representing the user
       var player_icon = $('[data-id="'+kwargs.id+'"]');
 
@@ -180,7 +185,6 @@ function main(session) {
         player_icon.attr('src','img/green_led.png');
       else
         player_icon.attr('src','img/red_led.png');
-
   }
 
   //Remove icon representing logged out user
@@ -197,62 +201,22 @@ function main(session) {
   };
 
   //Add new icon to represent logged in user
-  var onLogins = function(args, kwargs, details) {
-    
-    var new_player = kwargs.new_player;
-    var new_players = [];
-    new_players.push(new_player);
-    
-    var guesses_body = $('#guesses_body');
-
-    var image = new EJS({url: 'templates/guesses_display.ejs'}).render({loggedInUsers: new_players});
-
-    guesses_body.append(image);
-
+  var onLogins = function(args, kwargs, details) {  
+    $('#guesses_body').append(new EJS({
+      url: 'templates/guesses_display.ejs'
+    }).render({
+      loggedInUsers: [kwargs.new_player]
+    }));
   };
 
   //Display leader board on round end
   var onRoundEnd = function(args, kwargs, details){
-     
-
     //args contains the top X leaders for the leader board
-
     if(args.length>0){
         var leader_board_body = $('#leader_board_body');
         var leaders = new EJS({url: 'templates/leader_board.ejs'}).render({leaders: args});
         leader_board_body.html(leaders);      
     }
-      
-    // session.call("com.google.guesswho.getLoggedInUsers").then(
-    //    function(success){
-        
-    //       loggedInUsers=success;  
-
-    //       if(loggedInUsers.length > 0)
-    //       {
-
-    //         //Sort logged in users based on score
-    //         loggedInUsers.sort(function(a,b){
-    //           if(b.score > a.score){
-    //             return 1;
-    //           }
-    //           if(b.score < a.score){
-    //             return -1;
-    //           }
-    //           return 0;
-    //         });
-
-    //         var leader_board_body = $('#leader_board_body');
-    //         var leaders = new EJS({url: 'templates/leader_board.ejs'}).render({leaders: loggedInUsers});
-    //         leader_board_body.html(leaders);
-    //       }            
-    //    },
-    //    function(error){
-    //       session.log();
-    //       //retry
-    //    }
-
-    // ); 
   }
 
   // Subscribe to New Guess event
@@ -261,8 +225,8 @@ function main(session) {
          console.log("subscribed to ", success.topic);
       }, session.log
   );
-  // Subscribe to Round Start event
- 
+
+  // Subscribe to Round Start event 
   session.subscribe("com.google.guesswho.roundStart", onRoundStart).then(
     function(success){
        console.log("subscribed to ", success.topic);
