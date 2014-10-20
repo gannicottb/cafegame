@@ -233,7 +233,7 @@ var Mobile = (function() {
     $(window).on('beforeunload', logout );
 
     //Check to see if the device already has a user id
-    //Note: needs to use sessionStorage for 'real' mobile testing
+    //Note: needs to use localStorage for 'real' mobile testing
     user.id = sessionStorage.getItem("id");
 
     //Log in to the server (and get auto-registered if no uid is present)

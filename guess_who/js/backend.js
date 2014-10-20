@@ -81,8 +81,7 @@ var Backend = (function() {
   };
 
   // Login new and existing users
-  var login = function(args, kwargs, details) {
-    var result = {};
+  var login = function(args, kwargs, details) {    
 
     var uid = args[0]; //it's a string
     console.log("uid " + args[0] + " logging in");
@@ -105,12 +104,10 @@ var Backend = (function() {
     if(user.id != Number(uid))
     {
       //DEBUGGING USERS ISSUE
-      console.warn("users are out of order")
+      console.warn("LOGIN: users are out of order")
     }
 
-    console.log("User " + user.name + " is logged in.");
-
-    result.user = user; // add the user to the result bundle
+    console.log("User " + user.name + " is logged in.");    
 
     logged_in_users = getLoggedInUsers().length; // cache the number of logged in users
 
@@ -135,9 +132,7 @@ var Backend = (function() {
         //initialize user score for this round (user has joined mid-round)
         user.round_scores[round.number] = 0;
         break;
-    }
-
-    result.round = round; // add the round to the result bundle
+    }   
 
     if (!logged_back_in) { // only publish newlogin event if the person wasn't logged in before
       session.publish("com.google.guesswho.newLogin", [], {
@@ -148,7 +143,7 @@ var Backend = (function() {
       });
     }
 
-    return result;
+    return {user: user, round: round} 
   };
 
   // Register new devices
@@ -201,7 +196,7 @@ var Backend = (function() {
     if(user.id != Number(kwargs.id))
     {
       //DEBUGGING USERS ISSUE
-      console.warn("users are out of order")
+      console.warn("SUBMIT GUESS: users are out of order")
     }
 
     // This user is not idle this round, and their idle count is reset
@@ -264,7 +259,7 @@ var Backend = (function() {
       console.warn("users are out of order")
     }
 
-    verify(user);
+    //verify(user);
 
     user.logged_in = false;
     var logout_msg = 'User ' + user.name + ' has logged out!';
