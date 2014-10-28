@@ -4,6 +4,7 @@
    <meta charset="UTF-8">
    <link rel="shortcut icon" href="img/favicon.ico">
    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+   <link href='http://fonts.googleapis.com/css?family=Roboto:700,500,400' rel='stylesheet' type='text/css'>
    <link rel="stylesheet" href="css/mobile.css">
    <!-- alertify styles -->
    <link rel="stylesheet" href="css/alertify.core.css" />
@@ -12,30 +13,32 @@
 </head>
 <body>
    
-   <header id="demo_title" class="center">
-      <h1>Guess Who?</h1>
-   </header>
+   <div class="wrap">
+      <header id="demo_title" class="center">
+         <h1>Guess Who?</h1>
+      </header>
 
-   <div class="name_container center">   
-      Hello, Google Visitor!
+      <div class="name_container center">   
+         Hello, Google Visitor!
+      </div>
+
+      <hr>
+
+      <div class="timer center">
+         <!-- Timer goes here -->
+      </div>
+
+      <h2 class="round_score center"></h2>
+      
+      <hr>
+
+      <div id="input_body" class="center">
+         <p class="default center">
+            Waiting for the next round to begin
+         </p>      
+      </div>            
+
    </div>
-
-   <hr>
-
-   <div class="timer center">
-      <!-- Timer goes here -->
-   </div>
-
-   <h2 class="round_score center"></h2>
-
-   <div id="input_body" class="center">
-      <p class="default center">
-         Waiting for the next round to begin
-      </p>      
-   </div>            
-
-   <hr>
-
    <script>AUTOBAHN_DEBUG = true;</script>
    <script type="text/javascript" src="js/lib/autobahn.min.js"></script>
    <script type="text/javascript" src="js/lib/jquery-1.11.1.js"></script>

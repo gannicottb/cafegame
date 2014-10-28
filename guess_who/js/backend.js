@@ -427,7 +427,7 @@ var Backend = (function() {
         //save in object "guesslist": 
         guess_list[i] = {
           id: i,
-          keyword: lines[i]
+          keyword: lines[i].trim()
         }
         //console.log(guess_list[i].id, guess_list[i].keyword);
       }

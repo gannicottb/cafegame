@@ -72,7 +72,7 @@ var LargeLeft = (function() {
       // Cache the result
       var search_term = response.queries.request[0].searchTerms;
       localStorage.setItem(search_term, item.link);
-      console.log("caching", search_term );
+      console.log("caching", search_term, item.link );
 
       img.height = item.image.height
       img.width = item.image.width
@@ -88,9 +88,10 @@ var LargeLeft = (function() {
       cx: '009496675471206614083:yhwvgwxk0ws',
       q: keyword,
       searchType: 'image',
-      imgSize: 'xxlarge',
+      imgSize: 'xlarge',
       imgType: 'face',
-      safe: "high"
+      safe: "high",
+      num: 3
     }
 
     var url = "https://www.googleapis.com/customsearch/v1"

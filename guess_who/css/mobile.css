@@ -1,11 +1,41 @@
+.center {
+	margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+}
+
+.selected { 
+	border: 5px solid blue;
+}
+.correct{
+	background-color: greenYellow !important;
+}
+.incorrect{
+	background-color: orangeRed !important;
+}
+
+/* Elements */
+
 body {
-	font-family: "Arial Black", Gadget, sans-serif
+	font-family: 'Roboto', sans-serif;
+	background:  linear-gradient(to bottom, green , yellow, red);
+}
+
+.wrap {
+	width: 60vh;
+	height: 80vh;
+	margin: auto;
+	background-color: white;
+	border-radius: 25px;
+}
+
+#demo_title {
+	height: 10%;
 }
 
 hr{
 	width: 90%; 
-	color: gray;
-	background-color: gray;
+	background: linear-gradient(to right, green , yellow, red);
 	height: 3px;
 	border-width:0
 }
@@ -14,6 +44,7 @@ hr{
 	height: 100px;
 	width: 150px;	
 	background-color: silver;
+	border-radius: 25px;
 	font-size: large;
 	display: inline-block;
 	vertical-align: middle;
@@ -26,18 +57,21 @@ hr{
 	font-size: medium;
 }
 
-.center {
-	margin-left: auto;
-    margin-right: auto;
-    text-align: center;
+.name_container{
+	height: 10%;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	/*box-shadow: 0px 5px 5px;*/
+}
+.timer{
+	height: 10%;
+} 
+
+.round_score{
+	height: 10%;
 }
 
-.selected { 
-	border: 5px solid blue;
+#input_body{
+	height: 60%;
 }
-.correct{
-	background-color: greenYellow;
-}
-.incorrect{
-	background-color: orangeRed;
-}
+
