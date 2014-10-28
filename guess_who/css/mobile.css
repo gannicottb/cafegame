@@ -18,14 +18,13 @@
 
 body {
 	font-family: 'Roboto', sans-serif;
-	background:  linear-gradient(to bottom, green , yellow, red);
 }
 
 .wrap {
 	width: 60vh;
 	height: 80vh;
 	margin: auto;
-	background-color: white;
+	background: linear-gradient(to bottom, tan, beige, white);
 	border-radius: 25px;
 }
 
