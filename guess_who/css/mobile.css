@@ -34,7 +34,7 @@ body {
 
 hr{
 	width: 90%; 
-	background: linear-gradient(to right, green , yellow, red);
+	background: linear-gradient(to right, red, yellow, blue, green);
 	height: 3px;
 	border-width:0
 }
@@ -63,14 +63,16 @@ hr{
 	/*box-shadow: 0px 5px 5px;*/
 }
 .timer{
-	height: 10%;
+	height: 5%;
 } 
 
 .round_score{
-	height: 10%;
+	height: 5%;
+	font-size: x-large;
+	font-weight: 200;
 }
 
 #input_body{
-	height: 60%;
+	height: 50%;
 }
 

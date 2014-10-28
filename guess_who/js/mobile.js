@@ -181,7 +181,7 @@ var Mobile = (function() {
         clicked_button.addClass(success.correct ? 'correct' : 'incorrect');
         // TODO: Display the score in some nice way
 
-        $('.round_score').html("<h2>*"+success.score+"*</h2>");
+        $('.round_score').html("*"+success.score+"*");
 
         // Update the score - this doesn't match how we handle score now
         user.score += success.score
