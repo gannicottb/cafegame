@@ -203,7 +203,9 @@ var Mobile = (function() {
     var edit_widget = new EJS({
       url: 'templates/edit_name.ejs'
     }).render(user);
+ 
     container.html(edit_widget);
+
     container.find('input').prop('autofocus', true);
 
     // Wire up the edit_widget
