@@ -254,25 +254,21 @@ var Backend = (function() {
   var onLogout = function(args, kwargs, details) {
     var user = lookup(args[0]);
     
-    if(user.id != Number(args[0]))
-    {
-      //DEBUGGING USERS ISSUE
-      console.warn("users are out of order")
+    if(user.logged_in){
+      user.logged_in = false;
+      var logout_msg = 'User ' + user.name + ' has logged out!';
+      logged_in_users = getLoggedInUsers().length;
+
+      if (round.state === states.PREPARE && logged_in_users < config.MIN_PLAYERS_TO_START) {
+        round.state = states.WAIT; // backend is now waiting
+        clearTimeout(round_timer); // clear future events
+        session.publish("com.google.guesswho.stateChange", [], round);
+      }
+
+      console.log(logout_msg);
     }
+    // else do nothing, b/c we don't care about logout events from users that were already logged out
 
-    //verify(user);
-
-    user.logged_in = false;
-    var logout_msg = 'User ' + user.name + ' has logged out!';
-    logged_in_users = getLoggedInUsers().length;
-
-    if (round.state === states.PREPARE && logged_in_users < config.MIN_PLAYERS_TO_START) {
-      round.state = states.WAIT; // backend is now waiting
-      clearTimeout(round_timer); // clear future events
-      session.publish("com.google.guesswho.stateChange", [], round);
-    }
-
-    console.log(logout_msg);
   };
 
   // Begin the round
@@ -421,13 +417,17 @@ var Backend = (function() {
 
     //Get the curated list of people
     //
-    $.get('http://localhost:8080/guesslist.txt', function(myContentFile) {
+    var list = 'guesslist.txt'
+    $.get('http://localhost:8080/'+list, function(myContentFile) {
       var lines = myContentFile.split("\n");
       for (var i = 0; i < lines.length; i++) {
         //save in object "guesslist": 
-        guess_list[i] = {
-          id: i,
-          keyword: lines[i].trim()
+        var name = lines[i].trim();
+        if(name != ""){
+          guess_list[i] = {
+            id: i,
+            keyword: name
+          }
         }
         //console.log(guess_list[i].id, guess_list[i].keyword);
       }
