@@ -8,10 +8,12 @@
 	border: 5px solid blue;
 }
 .correct{
-	background-color: greenYellow !important;
+	/*background-color: greenYellow !important;*/
+	background: radial-gradient(greenYellow, greenYellow, green) !important;
 }
 .incorrect{
-	background-color: orangeRed !important;
+	/*background-color: orangeRed !important;*/
+	background: radial-gradient(orangeRed, orangeRed, red) !important;
 }
 
 /* Elements */
@@ -42,7 +44,8 @@ hr{
 .answer {
 	height: 100px;
 	width: 150px;	
-	background-color: silver;
+/*	background-color: silver;*/
+	background: radial-gradient(white, white, silver);
 	border-radius: 25px;
 	font-size: large;
 	display: inline-block;
