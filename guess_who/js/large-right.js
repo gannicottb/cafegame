@@ -137,8 +137,10 @@ var LargeRight = (function() {
   var main = function(a_session){
     session = a_session;
 
-    //Find local IP and display QR Code  
-    //loadQRCode();
+    //Find local IP and display QR Code 
+    if(document.location.host.split(':')[0] == "localhost"){
+      loadQRCode();
+    }
     
     //
     // SUBSCRIPTIONS
