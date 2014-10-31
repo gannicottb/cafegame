@@ -52,7 +52,8 @@ var LargeRight = (function() {
       function grepSDP(sdp) {       
         var hosts = [];
         sdp.split('\r\n').forEach(function (line) { // c.f. http://tools.ietf.org/html/rfc4566#page-39
-            if (~line.indexOf("a=candidate")) {     // http://tools.ietf.org/html/rfc4566#section-5.13
+            //if (~line.indexOf("a=candidate")) {     // http://tools.ietf.org/html/rfc4566#section-5.13
+            if (line.indexOf("candidate") != -1) {   // the first check doesn't work in Chrome for this page.
                 var parts = line.split(' '),        // http://tools.ietf.org/html/rfc5245#section-15.1
                     addr = parts[4],
                     type = parts[7];
