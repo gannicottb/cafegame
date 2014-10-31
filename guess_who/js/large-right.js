@@ -8,7 +8,7 @@ var LargeRight = (function() {
   //
   var init = function(){
     qrcode = new QRCode($("#qr_code")[0], {
-      text: 'http://127.0.0.1:8080/mobile.html',
+      text: 'http://'+document.location.host+'/mobile.html',
       width: 256,
       height: 256,
       colorDark : "#000000",
@@ -138,7 +138,7 @@ var LargeRight = (function() {
     session = a_session;
 
     //Find local IP and display QR Code  
-    loadQRCode();
+    //loadQRCode();
     
     //
     // SUBSCRIPTIONS
