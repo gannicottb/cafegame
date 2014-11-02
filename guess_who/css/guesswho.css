@@ -3,7 +3,9 @@
 
 html {
    min-height: 100%;
-   width: 100%;
+   /*width: 100%;*/
+   /*Wide enough for two HD monitors*/
+   width: 3840px;
 }
 
 body
