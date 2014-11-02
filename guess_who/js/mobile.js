@@ -232,7 +232,7 @@ var Mobile = (function() {
 
     //Resize the wrap so that it isn't based on vh (which changes when the keyboard comes up)
     //
-    $('.wrap').height($(window).height());
+    $('.wrap').height($(window).height()*.9);
     // Auto logout if the user leaves the page (notify the backend)
     //
     $(window).on('beforeunload', logout );
