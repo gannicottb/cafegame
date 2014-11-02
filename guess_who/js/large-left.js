@@ -250,9 +250,7 @@ var LargeLeft = (function() {
     //Set round timer
     timer_interval = GuessWho.setTimer($(".timer"), round.end);
 
-    // Load the image to start the round
-    //loadGoogleImage();
-
+    //If the image finished loading, show the frame and begin animating
     if(img.complete){
       $('.img_frame').show();
       startAnimate();
@@ -280,7 +278,7 @@ var LargeLeft = (function() {
     showAnswer();
   }
 
-  //stateChange??
+  //Either Prepare or Wait
   //
   var onStateChange = function(args, kwargs, details){
     
@@ -291,14 +289,10 @@ var LargeLeft = (function() {
       case GuessWho.states.PREPARE:
         //Update round info
         round = kwargs;
-        //$("#status").append("<br>Next round beginning in 5 seconds");
         $("#status").html("Next round beginning in 5 seconds");
-
-        //On prepare is when we hide the canvas and load the image.
+        //Hide canvas and pre-load the image
         $('.img_frame').hide();
         loadGoogleImage();
-
-
         break;       
     }
   };
@@ -313,11 +307,12 @@ var LargeLeft = (function() {
     frame = $('#img_frame');
     canvas = document.getElementById("demo_body_img");
 
-    /// wait until image is actually available
-    // we don't want to start animating until the round starts.
-    // we want to load the image in the prepare period.
-    
-    //img.onload = startAnimate; //so load the image to start animating
+    img.onload = function(){
+      if(round.state === states.PROGRESS){
+        //we finished loading late
+        startAnimate();
+      } // else do nothing, the roundStart will startAnimate()
+    }
     
     img.onerror = imgError;    
 

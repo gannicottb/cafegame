@@ -510,6 +510,10 @@ var Backend = (function() {
         return round;
       },
 
+      config: function(){
+        return config;
+      },
+
       setCorrectAnswer: function(correct) {
         round.correct_answer = correct;
       },
