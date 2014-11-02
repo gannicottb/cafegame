@@ -9,8 +9,8 @@ var LargeRight = (function() {
   var init = function(){
     qrcode = new QRCode($("#qr_code")[0], {
       text: 'http://'+document.location.host+'/mobile.html',
-      width: 256,
-      height: 256,
+      width: 384,
+      height: 384,
       colorDark : "#000000",
       colorLight : "#ffffff",
       correctLevel : QRCode.CorrectLevel.H

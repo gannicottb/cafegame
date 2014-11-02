@@ -401,7 +401,7 @@ var Backend = (function() {
 
     // auto resize iframes
     $('.demo_window').height($(window).height() - 50);
-    $('.demo_window').width($(window).width() / 2 - 25);
+    $('.demo_window').width($(document).width() / 2 - 25);
 
     // grab URL params from the browser and set config variables
     location.search.slice(1).split('&').map(function(str) {
