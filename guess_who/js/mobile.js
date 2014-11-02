@@ -5,7 +5,7 @@ var Mobile = (function() {
 
   var session, user, states;
   var round, round_in_progress, timer_interval
-  var input_body, name_container;
+  var input_body, name_container, round_status, round_score;
 
   // Private functions
   //
@@ -19,6 +19,8 @@ var Mobile = (function() {
       score: 0
     };
     input_body = $('#input_body');
+    round_status = $('.round_status');
+    round_score = $('.round_score')
     name_container = $('.name_container');
     round = null;
     timer_interval = null;
@@ -63,12 +65,12 @@ var Mobile = (function() {
         timer_interval = GuessWho.setTimer($('.timer'), round.end);
         break;
       case states.WAIT:
-        // Update the waiting message
-        var waiting = new EJS({url: 'templates/waiting.ejs'}).render(round);        
-        input_body.html(waiting);
+        // Update the waiting message      
+        round_status.html(new EJS({url: 'templates/waiting.ejs'}).render(round));
         break;
       case states.PREPARE:
-        input_body.html("Preparing for next round in 5 seconds");
+        console.log("Round is preparing");
+        round_status.html("Preparing for next round in 5 seconds");
         break;      
     }
 
@@ -83,13 +85,12 @@ var Mobile = (function() {
     switch(round.state){
       case states.WAIT:
         console.log("Round is waiting");
-        // Update the waiting message
-        var waiting = new EJS({url: 'templates/waiting.ejs'}).render(round);        
-        input_body.html(waiting);
+        // Update the waiting message     
+        round_status.html(new EJS({url: 'templates/waiting.ejs'}).render(round));
         break;
       case states.PREPARE:
         console.log("Round is preparing");
-        input_body.html("Preparing for next round in 5 seconds");
+        round_status.html("Preparing for next round in 5 seconds");
         break;      
     }
   }
@@ -99,8 +100,9 @@ var Mobile = (function() {
     round = kwargs;
     console.log("Round", round.number, "starting!");
 
-    // clear out the score line
+    // clear out the score and status lines
     $('.round_score').html("");
+    round_status.html("");
 
     //Populate the input body with buttons
     var buttons = new EJS({url: 'templates/buttons.ejs'}).render(round);
@@ -117,9 +119,8 @@ var Mobile = (function() {
     switch(round.state){
       case states.WAIT:
         console.log("Round is waiting");
-        // Update the waiting message
-        var waiting = new EJS({url: 'templates/waiting.ejs'}).render(round);        
-        input_body.html(waiting);
+        // Update the waiting message     
+        round_status.html(new EJS({url: 'templates/waiting.ejs'}).render(round));
         break;
       case states.PREPARE:
         //Populate the input body with only the correct button

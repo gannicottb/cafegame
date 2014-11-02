@@ -60,16 +60,11 @@ var Backend = (function() {
   var verify = function(user) {
     if (user == undefined || user == null || user.logged_in == false) {
       //the user isn't registered or logged in
-      //throw an error of some kind
       throw new autobahn.Error('com.google.guesswho.error', ["User isn't registered or logged in"], user);
     }
   };
 
   var lookup = function(uid) {
-    
-    if (users[Number(uid)] != undefined){
-      console.assert(users[0].id == 0, "Users[0].id does not equal 0");
-    }
     return users[Number(uid)];
   };
 
@@ -101,12 +96,6 @@ var Backend = (function() {
       count: 0
     }
 
-    if(user.id != Number(uid))
-    {
-      //DEBUGGING USERS ISSUE
-      console.warn("LOGIN: users are out of order")
-    }
-
     console.log("User " + user.name + " is logged in.");    
 
     logged_in_users = getLoggedInUsers().length; // cache the number of logged in users
@@ -116,10 +105,11 @@ var Backend = (function() {
         if (logged_in_users >= config.MIN_PLAYERS_TO_START) {
           // We have enough players to go to Prepare
           round.state = states.PREPARE;
-          // Set a clear-able timeout to start the next round
-          round_timer = setTimeout(startNextRound, config.PREPARE_DURATION);
-          // Tell everyone that the round is about to begin
-          session.publish("com.google.guesswho.stateChange", [], round);
+          startPrepare();
+          // // Set a clear-able timeout to start the next round
+          // round_timer = setTimeout(startNextRound, config.PREPARE_DURATION);
+          // // Tell everyone that the round is about to begin
+          // session.publish("com.google.guesswho.stateChange", [], round);
         } else {
           // We don't have enough players, so let's calculate how many more we need
           round.players_needed = logged_in_users < config.MIN_PLAYERS_TO_START ? config.MIN_PLAYERS_TO_START - logged_in_users : 0
@@ -193,11 +183,6 @@ var Backend = (function() {
 
     console.log("Guess from user", kwargs.id, "identified as user", user.id)
 
-    if(user.id != Number(kwargs.id))
-    {
-      //DEBUGGING USERS ISSUE
-      console.warn("SUBMIT GUESS: users are out of order")
-    }
 
     // This user is not idle this round, and their idle count is reset
     user.idle = {
@@ -221,10 +206,6 @@ var Backend = (function() {
     user.score += score;
 
     //Update round score for user - we can probably use plain user now
-
-    // var user_x = $.grep(users, function(e){ return e.id == kwargs.id; })[0];
-    
-    // user_x.round_scores[round.number] = score;
     
     user.round_scores[round.number] = score;
 
@@ -271,6 +252,20 @@ var Backend = (function() {
 
   };
 
+  var startPrepare = function(){
+    // Increment (wrapping if at end of list) the round number
+    round.number = (round.number + 1) % guess_list.length;
+    
+    // Add the next round keyword to round
+    round.correct_answer = guess_list[round.number];
+    
+    // Tell everyone that the round is about to begin
+    session.publish("com.google.guesswho.stateChange", [], round);
+    
+    // Set a clear-able timeout to start the next round
+    round_timer = setTimeout(startNextRound, config.PREPARE_DURATION);
+  };
+
   // Begin the round
   //
   var startNextRound = function() {
@@ -279,7 +274,7 @@ var Backend = (function() {
     round.state = states.PROGRESS;
 
     // Increment (wrapping if at end of list) the round number
-    round.number = (round.number + 1) % guess_list.length;
+    //round.number = (round.number + 1) % guess_list.length;
 
     // All users are considered idle until they answer during a round
     //All users are assigned starting round score of 0    
@@ -289,20 +284,14 @@ var Backend = (function() {
     })
 
     //Pick the keyword for the round, save the id
-    round.correct_answer = guess_list[round.number];
+    //round.correct_answer = guess_list[round.number];
 
     //Generate the answers
     //
     //Slice the list of keywords before and after the current keyword, then glue them together and shuffle the result
     var potentialAnswers = shuffle(guess_list.slice(0, round.number).concat(guess_list.slice(round.number + 1, guess_list.length)));
-    // clear out the answers  
-    round.answers = [];
-    //load in the correct answer
-    round.answers[0] = round.correct_answer;
-    // concatenate a slice of more possible answers to the array
-    round.answers = round.answers.concat(potentialAnswers.slice(0, config.NUMBER_OF_ANSWERS - 1));
-    // randomize the answer choices
-    shuffle(round.answers);
+    // rebuild answers array (correct + random wrong, shuffled)
+    round.answers = shuffle([round.correct_answer].concat(potentialAnswers.slice(0, config.NUMBER_OF_ANSWERS - 1)));
 
     //Set the alarm
     round.end = new Date().getTime() + config.ROUND_DURATION;
@@ -377,22 +366,24 @@ var Backend = (function() {
         //if they have been idle for X rounds, ask them to confirm that they still want to play
         session.publish('com.google.guesswho.confirm', [idle_user.id]);
       } else if (idle_user.idle.count > config.IDLE_THRESHOLD) {
-        // they get one round to confirm, then we log them out
-        session.publish('com.google.guesswho.logout', [idle_user.id])
+        // they get one round to confirm, then we log them out 
+        session.publish('com.google.guesswho.logout', [user.id])       
         onLogout([idle_user.id]); // call onLogout manually because publishers don't listen to themselves, apparently
       }
     });
 
-    // If we still have enough players to play, then set a timeout to start a new round
-    if (logged_in_users >= config.MIN_PLAYERS_TO_START) {
-      round_timer = setTimeout(startNextRound, config.PREPARE_DURATION);
-    } else {
-      // otherwise, we go back to Wait and let everyone know that we're waiting for players
-      round.state = states.WAIT;
+    if (logged_in_users < config.MIN_PLAYERS_TO_START) {     
+      round.state = states.WAIT;      
     }
 
     // The round is now officially over
     session.publish('com.google.guesswho.roundEnd', top_x_leaders, round);
+
+    // If we still have enough players to play, then set a timeout to start a new round
+    if(logged_in_users >= config.MIN_PLAYERS_TO_START){
+      startPrepare();
+    }
+
   };
 
 

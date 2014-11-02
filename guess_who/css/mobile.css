@@ -87,6 +87,11 @@ hr{
 	font-weight: 200;
 }
 
+.round_status{
+	height: 5%;
+	font-size: medium;
+}
+
 #input_body{
 	height: 50%;
 }

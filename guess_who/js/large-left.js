@@ -257,7 +257,7 @@ var LargeLeft = (function() {
   //Round End
   //
   var onRoundEnd = function(args, kwargs, details){
-    round = kwargs;
+    //round = kwargs;
 
     switch(kwargs.state){
       case GuessWho.states.WAIT:
@@ -284,6 +284,8 @@ var LargeLeft = (function() {
         $("#status").html("Waiting for "+kwargs.players_needed+" players to start next round");
         break;
       case GuessWho.states.PREPARE:
+        //Update round info
+        round = kwargs;
         $("#status").append("<br>Next round beginning in 5 seconds");
         break;       
     }
