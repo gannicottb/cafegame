@@ -269,35 +269,26 @@ var Backend = (function() {
   // Begin the round
   //
   var startNextRound = function() {
-
     // Round now in progress
     round.state = states.PROGRESS;
 
-    // Increment (wrapping if at end of list) the round number
-    //round.number = (round.number + 1) % guess_list.length;
-
     // All users are considered idle until they answer during a round
-    //All users are assigned starting round score of 0    
+    // All users are assigned starting round score of 0    
     users.map(function(user) {
       user.idle.this_round = true
       user.round_scores[round.number] = 0
     })
 
-    //Pick the keyword for the round, save the id
-    //round.correct_answer = guess_list[round.number];
-
-    //Generate the answers
-    //
     //Slice the list of keywords before and after the current keyword, then glue them together and shuffle the result
     var potentialAnswers = shuffle(guess_list.slice(0, round.number).concat(guess_list.slice(round.number + 1, guess_list.length)));
-    // rebuild answers array (correct + random wrong, shuffled)
+    //Rebuild answers array (correct + random wrong, shuffled)
     round.answers = shuffle([round.correct_answer].concat(potentialAnswers.slice(0, config.NUMBER_OF_ANSWERS - 1)));
 
     //Set the alarm
     round.end = new Date().getTime() + config.ROUND_DURATION;
     round_timer = setTimeout(onRoundOver, config.ROUND_DURATION);
 
-    //Publish the roundStart event (everyone wants to know)
+    //Publish the roundStart event
     session.publish("com.google.guesswho.roundStart", [], round);
   };
 
@@ -367,16 +358,17 @@ var Backend = (function() {
         session.publish('com.google.guesswho.confirm', [idle_user.id]);
       } else if (idle_user.idle.count > config.IDLE_THRESHOLD) {
         // they get one round to confirm, then we log them out 
-        session.publish('com.google.guesswho.logout', [user.id])       
+        session.publish('com.google.guesswho.logout', [idle_user.id])       
         onLogout([idle_user.id]); // call onLogout manually because publishers don't listen to themselves, apparently
       }
     });
 
+    // If we do not have enough players left to play, go back to WAIT
     if (logged_in_users < config.MIN_PLAYERS_TO_START) {     
       round.state = states.WAIT;      
     }
 
-    // The round is now officially over
+    // The round is now over
     session.publish('com.google.guesswho.roundEnd', top_x_leaders, round);
 
     // If we still have enough players to play, then set a timeout to start a new round

@@ -4,7 +4,7 @@ var LargeLeft = (function() {
   var canvas, ctx, frame;
   var session, googleAppKey, timer_interval, animation_interval;
   var round;
-  var states, image, image_result;
+  var states, img, image_result;
 
   //Private Functions
   //
@@ -74,9 +74,9 @@ var LargeLeft = (function() {
       localStorage.setItem(search_term, item.link);
       console.log("caching", search_term, item.link );
 
-      img.height = item.image.height
-      img.width = item.image.width
-      img.src = item.link + '?' + new Date().getTime(); // cache bust to reload the image and trigger guessStart()
+      img.height = item.image.height;
+      img.width = item.image.width;
+      img.src = item.link + '?' + new Date().getTime(); // cache bust to reload the image and trigger startAnimate()
     }
     return false;
   };
@@ -139,9 +139,9 @@ var LargeLeft = (function() {
     }
   };
 
-  // Round start handling, more or less
+  // Start animating the image
   //
-  function guessStart() {
+  function startAnimate() {
     // Update displayed info
     $("#person_name").html("NAME THAT PERSON!");
     console.log("Guess start");    
@@ -182,7 +182,7 @@ var LargeLeft = (function() {
         showAnswer();
       } else {
         pixelate(level);
-        if (level <= max_pixelate/2)//change slowly in first half
+        if (level <= max_pixelate/2) //change slowly in first half
           level += (change/2)        
         else
           level += change //change more quickly in last half
@@ -251,7 +251,12 @@ var LargeLeft = (function() {
     timer_interval = GuessWho.setTimer($(".timer"), round.end);
 
     // Load the image to start the round
-    loadGoogleImage();
+    //loadGoogleImage();
+
+    if(img.complete){
+      $('.img_frame').show();
+      startAnimate();
+    }
   };
 
   //Round End
@@ -286,7 +291,14 @@ var LargeLeft = (function() {
       case GuessWho.states.PREPARE:
         //Update round info
         round = kwargs;
-        $("#status").append("<br>Next round beginning in 5 seconds");
+        //$("#status").append("<br>Next round beginning in 5 seconds");
+        $("#status").html("Next round beginning in 5 seconds");
+
+        //On prepare is when we hide the canvas and load the image.
+        $('.img_frame').hide();
+        loadGoogleImage();
+
+
         break;       
     }
   };
@@ -302,7 +314,11 @@ var LargeLeft = (function() {
     canvas = document.getElementById("demo_body_img");
 
     /// wait until image is actually available
-    img.onload = guessStart; //so load the image to start everything
+    // we don't want to start animating until the round starts.
+    // we want to load the image in the prepare period.
+    
+    //img.onload = startAnimate; //so load the image to start animating
+    
     img.onerror = imgError;    
 
     //

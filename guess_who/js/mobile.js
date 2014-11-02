@@ -20,7 +20,7 @@ var Mobile = (function() {
     };
     input_body = $('#input_body');
     round_status = $('.round_status');
-    round_score = $('.round_score')
+    round_score = $('.round_score');
     name_container = $('.name_container');
     round = null;
     timer_interval = null;
@@ -101,7 +101,7 @@ var Mobile = (function() {
     console.log("Round", round.number, "starting!");
 
     // clear out the score and status lines
-    $('.round_score').html("");
+    round_score.html("");
     round_status.html("");
 
     //Populate the input body with buttons
@@ -182,7 +182,7 @@ var Mobile = (function() {
         clicked_button.addClass(success.correct ? 'correct' : 'incorrect');
         // TODO: Display the score in some nice way
 
-        $('.round_score').html("*"+success.score+"*");
+        round_score.html("*"+success.score+"*");
 
         // Update the score - this doesn't match how we handle score now
         user.score += success.score
