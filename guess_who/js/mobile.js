@@ -230,6 +230,9 @@ var Mobile = (function() {
 
     session = autobahn_session;
 
+    //Resize the wrap so that it isn't based on vh (which changes when the keyboard comes up)
+    //
+    $('.wrap').height($(window).height());
     // Auto logout if the user leaves the page (notify the backend)
     //
     $(window).on('beforeunload', logout );

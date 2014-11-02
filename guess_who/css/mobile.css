@@ -23,11 +23,14 @@ body {
 }
 
 .wrap {
-	width: 60vh;
-	height: 80vh;
+	/*width: 65vh;
+	height: 80vh;*/
+	width: 80vw;
+	height: 90vh;
 	margin: auto;
 	background: linear-gradient(to bottom, tan, beige, white);
 	border-radius: 25px;
+
 }
 
 #demo_title {
@@ -42,16 +45,15 @@ hr{
 }
 
 .answer {
-	height: 100px;
-	width: 150px;	
-/*	background-color: silver;*/
+	height: 40%;
+	width: 40%;	
+	margin: 5px 5px 5px 5px;
 	background: radial-gradient(white, white, silver);
 	border-radius: 25px;
 	font-size: large;
 	display: inline-block;
 	vertical-align: middle;
 }
-
 
 .name_container{
 	height: 10%;
