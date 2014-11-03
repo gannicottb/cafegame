@@ -401,6 +401,7 @@ var Backend = (function() {
     //Get the curated list of people
     //
     var list = 'guesslist.txt'
+    //var list = 'test.txt'
     $.get('http://'+document.location.host+'/'+list, function(myContentFile) {
       var lines = myContentFile.split("\n");
       for (var i = 0; i < lines.length; i++) {

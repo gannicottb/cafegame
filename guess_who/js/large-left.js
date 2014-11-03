@@ -94,8 +94,8 @@ var LargeLeft = (function() {
       localStorage.setItem(search_term, item.link);
       console.log("caching", search_term, item.link );
 
-      img.height = item.image.height;
-      img.width = item.image.width;
+      //img.height = item.image.height;
+      //img.width = item.image.width;
       img.src = item.link + '?' + new Date().getTime(); // cache bust to reload the image and trigger startAnimate()
     }
     return false;
@@ -133,7 +133,7 @@ var LargeLeft = (function() {
     // Check to see if the image url is already cached
     var cached_image_url = localStorage.getItem(keyword);
     if(cached_image_url){
-      console.log("cache hit!");
+      console.log("cache hit!");      
       img.src = cached_image_url + '?' + new Date().getTime(); // cache bust
     } else { // The keyword doesn't have a cached URL
       console.log("cache miss!");
@@ -270,14 +270,18 @@ var LargeLeft = (function() {
     //Set round timer
     timer_interval = GuessWho.setTimer($(".timer"), round.end);
 
-    //If the image finished loading, show the frame and begin animating
+    // Clear the canvas
+    ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
     if(img.complete){
-      $('.img_frame').show();
+      //If the image finished loading, show the frame and begin animating
       startAnimate();
-    } else {      
+    } else {
+      //Display a spinner while we wait for the image to load      
       var target = document.getElementById('img_frame');
       spinner.spin(target);
-    }
+    };
 
   };
 
@@ -315,7 +319,7 @@ var LargeLeft = (function() {
         round = kwargs;
         $("#status").html("Next round beginning in 5 seconds");
         //Hide canvas and pre-load the image
-        $('.img_frame').hide();
+               
         loadGoogleImage();
         break;       
     }
@@ -332,10 +336,13 @@ var LargeLeft = (function() {
     canvas = document.getElementById("demo_body_img");
 
     img.onload = function(){
+      $(img).removeAttr('height').removeAttr('width');
+      img.width = this.width;
+      img.height = this.height;
       if(round.state === states.PROGRESS){
         //We finished loading late
         spinner.stop();
-        $('.img_frame').show();
+        //set the width and height?
         startAnimate();
       } // else do nothing, the roundStart will startAnimate()
     }
