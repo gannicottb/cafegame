@@ -5,6 +5,7 @@ var LargeLeft = (function() {
   var session, googleAppKey, timer_interval, animation_interval;
   var round;
   var states, img, image_result;
+  var spinner;
 
   //Private Functions
   //
@@ -37,6 +38,25 @@ var LargeLeft = (function() {
       result: [],
       index: 0
     };
+
+    spinner = new Spinner({
+      lines: 13, // The number of lines to draw
+      length: 20, // The length of each line
+      width: 10, // The line thickness
+      radius: 30, // The radius of the inner circle
+      corners: 1, // Corner roundness (0..1)
+      rotate: 0, // The rotation offset
+      direction: 1, // 1: clockwise, -1: counterclockwise
+      color: '#000', // #rgb or #rrggbb or array of colors
+      speed: 1, // Rounds per second
+      trail: 60, // Afterglow percentage
+      shadow: false, // Whether to render a shadow
+      hwaccel: false, // Whether to use hardware acceleration
+      className: 'spinner', // The CSS class to assign to the spinner
+      zIndex: 2e9, // The z-index (defaults to 2000000000)
+      top: '50%', // Top position relative to parent
+      left: '50%' // Left position relative to parent
+    });
   };
 
   // Handle results of Image Search
@@ -254,7 +274,11 @@ var LargeLeft = (function() {
     if(img.complete){
       $('.img_frame').show();
       startAnimate();
+    } else {      
+      var target = document.getElementById('img_frame');
+      spinner.spin(target);
     }
+
   };
 
   //Round End
@@ -309,7 +333,9 @@ var LargeLeft = (function() {
 
     img.onload = function(){
       if(round.state === states.PROGRESS){
-        //we finished loading late
+        //We finished loading late
+        spinner.stop();
+        $('.img_frame').show();
         startAnimate();
       } // else do nothing, the roundStart will startAnimate()
     }
