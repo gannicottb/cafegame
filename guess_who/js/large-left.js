@@ -342,7 +342,6 @@ var LargeLeft = (function() {
       if(round.state === states.PROGRESS){
         //We finished loading late
         spinner.stop();
-        //set the width and height?
         startAnimate();
       } // else do nothing, the roundStart will startAnimate()
     }
