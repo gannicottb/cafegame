@@ -378,6 +378,13 @@ var Backend = (function() {
 
   };
 
+  function resizeIframes()
+  {
+    // auto resize iframes
+    $('.demo_window').height($(window).height() - 50);
+    $('.demo_window').width($(document).width() / 2 - 25);
+  }
+
 
   var main = function(autobahn_session) {
     session = autobahn_session;
@@ -385,6 +392,8 @@ var Backend = (function() {
     // auto resize iframes
     $('.demo_window').height($(window).height() - 50);
     $('.demo_window').width($(document).width() / 2 - 25);
+
+    window.addEventListener('resize', resizeIframes);
 
     // grab URL params from the browser and set config variables
     location.search.slice(1).split('&').map(function(str) {
