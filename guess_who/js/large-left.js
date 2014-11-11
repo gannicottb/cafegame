@@ -163,16 +163,18 @@ var LargeLeft = (function() {
   //
   function startAnimate() {
     // Update displayed info
-    $("#person_name").html("NAME THAT PERSON!");
+    $("#person_name").html("Name that person!");
     console.log("Guess start");    
 
     //Set size of the canvas    
     var w,h;
-    if (img.width >= img.height){ //if landscape or square
-      w = frame.width();
+    var frame_size = 50; //declared in #demo_body_img in guesswho.css
+    var text_height = 100;
+    if (img.width >= img.height+text_height){ //if landscape or square
+      w = frame.width() - frame_size*2;
       h = w * (img.height/img.width);
     } else { // if portrait
-      h = frame.height(); 
+      h = frame.height() - frame_size*2 - text_height; 
       w = h * (img.width/img.height);
     }
 
@@ -222,7 +224,7 @@ var LargeLeft = (function() {
     pixelate(1); // show origin image
     console.log("Round Over! Show Answer: XXXX");
   
-    $("#person_name").html("ANSWER: " + round.correct_answer.keyword);
+    $("#person_name").html(round.correct_answer.keyword);
   };
 
   //Image error handling

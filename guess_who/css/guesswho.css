@@ -45,6 +45,17 @@ header {
    /*background-color: #1b1b1b;*/
 }
 
+#person_name {
+  width: 50%;
+  padding: 5px;
+  border: 5px outset #996633;
+  background-color: #FFCC66;
+
+  font: 250% 'Cookie', Helvetica, sans-serif;
+  color: #000000;
+  text-shadow: 5px 5px 4px rgba(0,0,0,0.1); 
+}
+
 .center {
   margin-left: auto;
   margin-right: auto;
@@ -73,6 +84,7 @@ header {
 #link_text
 {
   font-size: large;
+  color: #000000;
   position: fixed;
   left: 5px;
   bottom: 5px;
@@ -160,6 +172,23 @@ header {
   margin-left: auto;
   margin-right: auto; 
   display:block; 
+
+  border: 50px solid transparent;
+  padding: 1px 1px;
+  border-image: url(/img/frame.png) 100 100 stretch;
+}
+
+#left_body {
+  padding: 20px;
+  background-image: url("/img/background-spotlight.jpg");
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+#right_body {
+  padding: 30px;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
 }
 
 .notextselect {
