@@ -288,3 +288,7 @@ button:hover
     float: left;
     margin: 10px;
 }
+
+.round_info{
+  color: white;
+}
