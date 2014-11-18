@@ -1,4 +1,81 @@
-<h2>Leaderboard</h2>
+<style>
+      /* 
+      // Listrap v1.0, by Gustavo Gondim (http://github.com/ggondim)
+      // Licenced under MIT License
+      // For updates, improvements and issues, see https://github.com/inosoftbr/listrap
+      */
+
+      .leader_board {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            cursor: default;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .leader_board li {
+            margin: 0;
+            padding: 2px;
+        }
+
+        .leader_board li.active, .leader_board li:hover {
+            background-color: #d9edf7;
+        }
+
+        .leader_board strong {
+            margin-left: 10px;
+        }
+
+        .leader_board .leader_board-toggle {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+        }
+
+        .leader_board .leader_board-toggle span {
+            background-color: #428bca;
+            opacity: 0.8;
+            z-index: 100;
+            width: 60px;
+            height: 60px;
+            display: none;
+            position: absolute;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 60px;
+            vertical-align: middle;
+            color: #ffffff;
+        }
+
+        .leader_board .leader_board-toggle span:before {
+            font-family: 'Glyphicons Halflings';
+            content: "\e013";
+        }
+
+        .leader_board li.active .leader_board-toggle span {
+            display: block;
+        }
+        #leaderboard_name {
+		  font: 250% 'Cookie', Helvetica, sans-serif;
+		  color: #000000;
+		  text-shadow: 5px 5px 4px rgba(0,0,0,0.1); 
+		}
+   </style>
+
+<link href="http://fonts.googleapis.com/css?family=Cookie" rel="stylesheet" type="text/css">
+<h2 id="leaderboard_name">Leaderboard</h2>
+<ul class="leader_board">
 <% for(var i = 0; i < leaders.length; i++) {%>
-	<li class="leader_board" value=<%= leaders[i].id %>><%= leaders[i].name %>: <%= leaders[i].leaderboard_score %></li>
+	<li class="leader_board"  value=<%= leaders[i].id %>>
+                <div class="leader_board-toggle">
+                    <span></span>
+                    <img src="/img/crown.png" class="img-circle" />
+                </div>
+                <strong><%= leaders[i].name %>: <%= leaders[i].leaderboard_score %></strong>
+            </li>
 <% } %>
+</ul>
