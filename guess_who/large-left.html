@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
    <meta charset="UTF-8">
+   <link href="http://fonts.googleapis.com/css?family=Cookie" rel="stylesheet" type="text/css">
    <link rel="shortcut icon" href="img/favicon.ico">
    <link rel="stylesheet" href="css/guesswho.css">
    <title>Main Display (left)</title>
@@ -20,15 +21,14 @@
    <div>
       <div id="img_frame" class="center">
          <canvas id="demo_body_img"></canvas>
-         
-         <link href="http://fonts.googleapis.com/css?family=Cookie" rel="stylesheet" type="text/css">
-         <h1 id="person_name" class="center">Name that person!</h1>
-
-         <p id="round_number">Round</p>
-         <div class="timer center"></div>   
-         <h2 id="status" class="center"></h2>
       </div>
-   </div>   
+      <div id = "text_frame" class="center">
+         <h2 id="person_name" class="center">Name that person!</h1>
+         <p id="round_number" style="color:white;">Round</p>
+         <div class="timer center" style="color:white;"></div>   
+         <h2 id="status" class="center" style="color:white;"></h2>
+      </div>
+   </div>
 
    <script>
       AUTOBAHN_DEBUG = true;

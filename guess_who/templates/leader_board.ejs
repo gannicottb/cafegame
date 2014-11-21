@@ -32,16 +32,14 @@
 
         .leader_board .leader_board-toggle {
             display: inline-block;
-            width: 40px;
-            height: 40px;
+            height: 5%;
         }
 
         .leader_board .leader_board-toggle span {
             background-color: #428bca;
             opacity: 0.8;
             z-index: 100;
-            width: 60px;
-            height: 60px;
+            height: 5%;
             display: none;
             position: absolute;
             border-radius: 50%;
@@ -66,16 +64,15 @@
 		}
    </style>
 
-<link href="http://fonts.googleapis.com/css?family=Cookie" rel="stylesheet" type="text/css">
 <h2 id="leaderboard_name">Leaderboard</h2>
 <ul class="leader_board">
 <% for(var i = 0; i < leaders.length; i++) {%>
 	<li class="leader_board"  value=<%= leaders[i].id %>>
-                <div class="leader_board-toggle">
-                    <span></span>
-                    <img src="/img/crown.png" class="img-circle" />
-                </div>
-                <strong><%= leaders[i].name %>: <%= leaders[i].leaderboard_score %></strong>
-            </li>
+        <div class="leader_board-toggle">
+            <span></span>
+            <img src="/img/crown.png" class="img-circle" />
+        </div>
+        <strong><%= leaders[i].name %>: <%= leaders[i].leaderboard_score %></strong>
+    </li>
 <% } %>
 </ul>
