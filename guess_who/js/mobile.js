@@ -6,6 +6,7 @@ var Mobile = (function() {
   var session, user, states;
   var round, round_in_progress, timer_interval
   var input_body, name_container, round_status, round_score;
+  var clicked_button_id, is_answer_correct, round_score_value;
 
   // Private functions
   //
@@ -100,6 +101,10 @@ var Mobile = (function() {
     round = kwargs;
     console.log("Round", round.number, "starting!");
 
+    //Clear the round score
+    round_score_value = 0;
+    clicked_button_id = null;
+
     // clear out the score and status lines
     round_score.html("");
     round_status.html("");
@@ -123,14 +128,23 @@ var Mobile = (function() {
         round_status.html(new EJS({url: 'templates/waiting.ejs'}).render(round));
         break;
       case states.PREPARE:
-        //Populate the input body with only the correct button
-        var buttons = new EJS({url: 'templates/buttons.ejs'}).render({answers: [round.correct_answer]});
-        input_body.html(buttons);
 
-        // Disable the button and color it appropriately
-        var answer = input_body.find('.answer:first');
-        answer.prop('disabled', true);
-        answer.addClass('correct');
+        //Display round score
+        round_score.html("*"+round_score_value+"*");
+
+        if(clicked_button_id!==null)
+        {
+          //Highlight the player's answer
+          var answer = $(".answer[value="+clicked_button_id+"]");
+          answer.addClass(is_answer_correct ? 'correct' : 'incorrect');          
+        }
+
+        //Highlight the correct answer
+        var correct_answer = $(".answer[value="+round.correct_answer.id+"]");
+        correct_answer.addClass('correct');  
+
+        //disable all the buttons
+        $(".answer").prop('disabled', true);      
 
         // Clear the timer
         GuessWho.clearTimer($('.timer'), timer_interval);
@@ -172,6 +186,8 @@ var Mobile = (function() {
     input_body.children('.answer').prop('disabled', true);
     clicked_button.addClass('selected'); // add a border to indicate that the button has been clicked
 
+    clicked_button_id = clicked_button.val();
+
     // Submit the answer to the server
     session.call("com.google.guesswho.submit", [], {
       id: user.id,
@@ -179,10 +195,10 @@ var Mobile = (function() {
       time: new Date().getTime()
     }).then(
       function(success) {
-        clicked_button.addClass(success.correct ? 'correct' : 'incorrect');
+        // clicked_button.addClass(success.correct ? 'correct' : 'incorrect');
+        is_answer_correct = success.correct;
         // TODO: Display the score in some nice way
-
-        round_score.html("*"+success.score+"*");
+        round_score_value = success.score;
 
         // Update the score - this doesn't match how we handle score now
         user.score += success.score
