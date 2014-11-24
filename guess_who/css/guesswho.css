@@ -163,7 +163,14 @@ header {
 #img_frame {
   /*border: red 5px solid;*/
   width: 80vw;  
-  height: 80vh;
+  height: 70vh;
+  
+}
+
+#text_frame {
+  /*border: red 5px solid;*/
+  width: 80vw;  
+  height: 20vh;
   
 }
 

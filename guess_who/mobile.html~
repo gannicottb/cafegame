@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <link rel="shortcut icon" href="img/favicon.ico">
+   <title>Mobile</title>
+   <link rel="stylesheet" href="css/vote.css">
+</head>
+<body>
+
+   <header>
+      <div id="header_inner">
+         <div id="demo_title">
+            <span>Guess Who?</span>
+         </div>
+         <a class="navbar-brand" href="/">
+            <img src="img/crossbar_icon_inverted.png" alt="crossbar logo inverted" width="60" height="60">
+            <span class="fontFace">
+               <span>Google</span><span>Collaborative Games</span>
+            </span>
+         </a>
+      </div>
+   </header>
+
+   <div class="demo_links">     
+      <div>
+      Hello,
+         <span id="user_name">
+             Google visitor
+         </span>!
+      </div>
+
+   </div>
+
+   <div id="demo_body">      
+      <input type="text" id="inputGuess" placeholder="What do you think it is?"/>      
+      <br/>
+      <button id="submitGuess">
+         Guess!
+      </button>
+   </div>         
+      
+   <div id="guessList">
+      <span>Guesses will appear here</span>
+   </div>
+
+   <script>AUTOBAHN_DEBUG = true;</script>
+   <script src="js/autobahn.min.js"></script>
+   <script src="js/mobile.js"></script>
+   <script src="js/jquery-1.11.1.js"></script>
+
+</body>
+</html>

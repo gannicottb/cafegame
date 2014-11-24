@@ -169,12 +169,12 @@ var LargeLeft = (function() {
     //Set size of the canvas    
     var w,h;
     var frame_size = 50; //declared in #demo_body_img in guesswho.css
-    var text_height = 100;
-    if (img.width >= img.height+text_height){ //if landscape or square
-      w = frame.width() - frame_size*2;
+    var paddings = 20;
+    if (img.width >= img.height){ //if landscape or square
+      w = frame.width() - (frame_size+paddings)*2;
       h = w * (img.height/img.width);
     } else { // if portrait
-      h = frame.height() - frame_size*2 - text_height; 
+      h = frame.height() - (frame_size+paddings)*2; 
       w = h * (img.width/img.height);
     }
 
